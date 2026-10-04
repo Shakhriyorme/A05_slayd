@@ -1,0 +1,1398 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hujjatlarni klasterlash — A5</title>
+<link rel="stylesheet" href="assets/vendor/reveal/reveal.css">
+<style>
+@font-face{font-family:"Onest";font-style:normal;font-weight:100 900;font-display:swap;src:url(assets/vendor/fonts/onest-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Onest";font-style:normal;font-weight:100 900;font-display:swap;src:url(assets/vendor/fonts/onest-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{
+  --bg:#F5F5F3; --surface:#FFFFFF; --ink:#17181C; --ink-2:#3A3D45; --muted:#6B6F78; --faint:#9A9DA4; --line:#E1E1DC; --soft:#ECECE7;
+  --mark:#FFE7A0;
+  /* klaster ranglari — Okabe–Ito (rang ko'rishi zaif odamlar uchun ham ajraladi) */
+  --c0:#D55E00; --c1:#CC79A7; --c2:#E69F00; --c3:#0072B2; --c4:#009E73; --c5:#56B4E9; --c6:#8A8D93; --c7:#B8A400;
+  --font:"Onest","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%;background:var(--bg)}
+body{font-family:var(--font);color:var(--ink);overflow:hidden}
+::selection{background:var(--mark);color:var(--ink)}
+#deck{position:fixed;left:0;right:0;top:0;bottom:0;transition:bottom .35s cubic-bezier(.2,.8,.2,1)}
+body.show-notes #deck{bottom:var(--notes-h,128px)}
+.reveal{font-family:var(--font);font-size:34px;color:var(--ink);background:var(--bg)}
+.reveal .slides{text-align:left}
+.reveal .slides>section{box-sizing:border-box;width:1920px;height:1080px!important;min-height:1080px;padding:84px 112px 72px;display:flex!important;flex-direction:column}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{font-family:var(--font);color:var(--ink);text-transform:none;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.reveal h2{font-size:72px;font-weight:650;line-height:1.05}
+.reveal h3{font-size:44px;font-weight:620;line-height:1.15}
+.reveal h4{font-size:34px;font-weight:620}
+.reveal p{margin:0;line-height:1.42}
+.reveal .lead{font-size:36px;color:var(--muted);margin-top:16px;max-width:64ch;line-height:1.35}
+.reveal .body{flex:1;min-height:0;margin-top:48px;position:relative}
+.reveal small,.reveal .small{font-size:27px;color:var(--muted);line-height:1.4}
+.reveal ul{margin:0;padding-left:1.1em;display:grid;gap:14px}
+.reveal li{line-height:1.38}
+.reveal a{color:var(--c3)}
+.reveal .progress{height:6px;color:var(--ink)}
+.reveal .controls{color:var(--faint)}
+.reveal .slide-number{background:transparent;color:var(--faint);font-family:var(--font);font-size:15px;right:18px;bottom:14px}
+.reveal .slides section .fragment{transition-duration:.5s}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.13em;flex:none}
+
+/* buttons & controls */
+.btn{display:inline-flex;align-items:center;gap:12px;height:68px;padding:0 28px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);
+  color:var(--ink);font:600 28px/1 var(--font);cursor:pointer;transition:background .2s,color .2s,transform .1s}
+.btn:hover{background:var(--soft)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--ink);color:#fff}
+.btn.primary:hover{background:var(--ink-2)}
+.btn.ghost{border-color:var(--line)}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn:focus-visible,.seg button:focus-visible{outline:3px solid var(--c3);outline-offset:3px}
+.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--soft);border-radius:14px;padding:5px;gap:4px}
+.seg button{border:0;background:transparent;font:600 27px/1 var(--font);padding:16px 24px;border-radius:10px;cursor:pointer;color:var(--ink-2)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(23,24,28,.14)}
+.switch{display:inline-flex;align-items:center;gap:16px;cursor:pointer;user-select:none;font-size:26px}
+.switch input{position:absolute;opacity:0;pointer-events:none}
+.switch .tr{width:64px;height:36px;border-radius:40px;background:#CFCFCA;position:relative;transition:background .2s;flex:none}
+.switch .tr::after{content:"";position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.2,.8,.2,1);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked+.tr{background:var(--ink)}
+.switch input:checked+.tr::after{transform:translateX(28px)}
+.switch input:focus-visible+.tr{outline:3px solid var(--c3);outline-offset:3px}
+input[type=range]{accent-color:var(--ink);width:100%;height:36px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px 34px}
+.mono{font-family:var(--mono)}
+.tok{display:inline-block;font-family:var(--mono);font-size:27px;padding:4px 10px;margin:4px 3px;border-radius:8px;background:var(--soft);color:var(--ink-2)}
+.tok.sh{background:var(--mark);color:var(--ink);font-weight:600}
+.dot{display:inline-block;width:18px;height:18px;border-radius:50%;flex:none}
+.meaning{display:inline-flex;align-items:center;gap:10px;font-weight:600}
+
+/* overlay HUD (viewport px) */
+#hud{position:fixed;top:14px;right:18px;z-index:30;display:flex;gap:10px;align-items:center;font:500 15px/1 var(--font);color:var(--muted)}
+#hud .plan.late{color:var(--c0)}
+#clock{display:flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:6px 11px;cursor:pointer;color:var(--ink);font:600 15px/1 var(--font)}
+#clock.paused{color:var(--faint)}
+#gear{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:6px 9px;cursor:pointer;color:var(--muted);display:flex}
+#notes{position:fixed;left:0;right:0;bottom:0;height:var(--notes-h,128px);box-sizing:border-box;padding:16px 28px;background:var(--surface);border-top:1px solid var(--line);
+  display:none;gap:18px;font:400 16px/1.5 var(--font);color:var(--ink-2);overflow:auto;z-index:20}
+body.show-notes #notes{display:flex}
+#notes b{flex:none;color:var(--ink);font-weight:650}
+
+/* settings */
+#settings{position:fixed;top:0;right:0;bottom:0;width:min(440px,92vw);background:var(--surface);border-left:1px solid var(--line);z-index:60;box-sizing:border-box;
+  transform:translateX(105%);transition:transform .38s cubic-bezier(.2,.8,.2,1);padding:28px 30px;display:flex;flex-direction:column;gap:6px;font:400 17px/1.4 var(--font);box-shadow:-20px 0 60px rgba(23,24,28,.12);overflow:auto}
+#settings.open{transform:none}
+#settings h3{font:650 26px/1.2 var(--font);margin:0 0 10px}
+#settings .opt{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:14px 0;border-bottom:1px solid var(--line)}
+#settings .opt small{display:block;color:var(--muted);font-size:14px;margin-top:3px}
+#settings .switch{font-size:17px}
+#settings .switch .tr{width:48px;height:28px}
+#settings .switch .tr::after{width:20px;height:20px}
+#settings .switch input:checked+.tr::after{transform:translateX(20px)}
+#settings .keys{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin-top:16px;color:var(--ink-2);font-size:15px}
+#settings .keys span:nth-child(odd){font-weight:650;color:var(--ink)}
+#settings .x{position:absolute;top:18px;right:18px;border:0;background:none;cursor:pointer;color:var(--muted);font-size:24px}
+#scrim{position:fixed;inset:0;background:rgba(23,24,28,.18);z-index:59;opacity:0;pointer-events:none;transition:opacity .3s}
+#scrim.open{opacity:1;pointer-events:auto}
+
+/* ---- 1 title ---- */
+.reveal .slides>section.s-title{justify-content:flex-end}
+.s-title h1{font-size:150px;font-weight:720;line-height:.94;letter-spacing:-.045em;max-width:6.2em}
+.s-title .sub{font-size:44px;color:var(--ink-2);margin-top:28px;font-weight:450}
+.s-title .meta{margin-top:64px;display:flex;gap:64px;font-size:28px;color:var(--muted)}
+.s-title .meta b{display:block;color:var(--ink);font-weight:600;margin-bottom:6px}
+.s-title .keys{position:absolute;left:112px;top:84px;font-size:22px;color:var(--faint)}
+#swarm{position:absolute;right:90px;top:90px;width:820px;height:640px}
+
+/* ---- 2 search ---- */
+.sbar{display:flex;align-items:center;gap:22px;height:96px;border-radius:48px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 24px rgba(23,24,28,.07);padding:0 40px;width:980px;box-sizing:border-box;font-size:40px;font-weight:550}
+.sbar .q{flex:1}
+.caret{display:inline-block;width:3px;height:44px;background:var(--ink);vertical-align:-8px;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.serp{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(8,1fr);column-gap:72px;row-gap:8px;margin-top:32px;height:680px}
+.res{min-width:0}
+.res .u{font-size:21px;color:var(--faint)}
+.res .t{font-size:31px;font-weight:600;color:#1F4FA8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res .s{font-size:25px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- 3 problem ---- */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:88px;height:100%}
+.rank{display:grid;grid-template-columns:repeat(16,1fr);gap:8px;margin-top:44px}
+.rank i{height:112px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:30px}
+.pages{display:grid;grid-template-columns:10fr 6fr;gap:8px;margin-top:14px;font-size:22px;color:var(--muted)}
+.pages span{border-top:3px solid var(--ink);padding-top:8px}
+.pages span+span{border-color:var(--line);color:var(--faint)}
+.quote{font-size:58px;font-weight:600;line-height:1.16;letter-spacing:-.02em}
+.quote-en{font-size:29px;color:var(--muted);font-style:italic;margin-top:22px}
+.cite{font-size:22px;color:var(--faint);margin-top:18px}
+.meanings{display:grid;grid-template-columns:1fr 1fr;gap:22px 28px;font-size:36px}
+.meanings span{display:flex;align-items:center;gap:14px}
+.meanings svg.i{width:44px;height:44px;padding:10px;border-radius:12px;color:#fff;box-sizing:content-box}
+
+/* ---- 4 timeline ---- */
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:48px;margin-top:70px}
+.tl-line{position:absolute;left:0;right:0;top:146px;height:3px;background:var(--line)}
+.tl-line i{position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--ink);transform-origin:left;transform:scaleX(0)}
+.ev .y{font-size:112px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.ev .pin{width:22px;height:22px;border-radius:50%;background:var(--bg);border:3px solid var(--ink);margin:22px 0 30px;position:relative;z-index:1}
+.ev h3{font-size:44px}
+.ev p{font-size:33px;color:var(--ink-2);margin-top:16px;line-height:1.4}
+.ev small{display:block;margin-top:22px;font-size:24px;color:var(--faint)}
+
+/* ---- 5 theory vector ---- */
+.flow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:56px;height:100%}
+.flow3 .stepbox h3{display:flex;gap:14px;align-items:baseline;margin-bottom:22px}
+.flow3 .stepbox h3 .n{font-size:30px;color:var(--faint);font-weight:600}
+.wbar{display:grid;grid-template-columns:180px 1fr 80px;gap:14px;align-items:center;font-size:28px;margin:14px 0}
+.wbar i{display:block;height:22px;border-radius:6px;background:var(--ink)}
+.wbar .w{color:var(--muted);text-align:right}
+.formula{font-family:var(--mono);font-size:29px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 22px;line-height:1.6;margin-top:18px}
+
+/* ---- 6 cosine matrix ---- */
+.cosgrid{display:grid;grid-template-columns:760px 1fr;gap:72px;height:100%}
+#cosSvg{width:760px;height:760px}
+.cosval{font-size:96px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.pair{display:grid;gap:18px;margin-top:22px}
+.pair .doc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 22px}
+.pair .doc b{display:flex;align-items:center;gap:12px;font-size:26px;margin-bottom:8px}
+
+/* ---- 7 compare ---- */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:88px}
+.cmp h3{display:flex;align-items:center;gap:18px;margin-bottom:28px}
+.cmp h3 svg.i{width:56px;height:56px;padding:12px;border-radius:14px;background:var(--soft);box-sizing:content-box}
+.cmp li{font-size:36px}
+.cmp .viz{width:100%;height:300px;margin-top:40px;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-sizing:border-box}
+.cmp .next{margin-top:30px;font-size:28px;color:var(--muted)}
+
+/* ---- 8 kmeans theory ---- */
+.kth{display:grid;grid-template-columns:1.25fr 1fr;gap:72px;height:100%}
+.thumbs{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.thumb{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.thumb svg{width:100%;height:300px;display:block}
+.thumb p{font-size:30px;font-weight:600}
+.thumb p span{color:var(--faint);font-weight:500;margin-right:8px}
+
+/* ---- 9 kmeans demo ---- */
+.km{display:grid;grid-template-columns:900px 1fr;gap:64px;height:100%}
+#kmSvg{width:900px;height:800px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-sizing:border-box}
+.steps{display:grid;gap:10px}
+.steps div{padding:18px 22px;border-radius:14px;color:var(--faint);font-size:28px;transition:background .3s,color .3s}
+.steps div b{display:block;font-size:32px;color:inherit;margin-bottom:4px}
+.steps div.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(23,24,28,.1)}
+.kmstat{font-size:28px;margin-top:22px}
+.legend{display:grid;gap:12px;margin-top:18px;font-size:28px}
+.legend div{display:flex;align-items:center;gap:12px}
+.shapes{display:flex;gap:24px;flex-wrap:wrap;font-size:26px;color:var(--muted);margin-top:16px}
+.shapes svg{width:26px;height:26px;vertical-align:-4px;margin-right:6px}
+
+/* ---- 10 silhouette ---- */
+.sil{display:grid;grid-template-columns:1fr 640px;gap:72px;height:100%}
+#silSvg{width:100%;height:600px}
+#silMini{width:640px;height:520px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-sizing:border-box}
+
+/* ---- 11 theory hierarchical + single-pass ---- */
+.th2{display:grid;grid-template-columns:1fr 1fr;gap:88px;height:100%}
+.th2>section,.two>div{display:flex;flex-direction:column;gap:20px}
+.th2 svg.dia{width:100%;height:360px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-sizing:border-box}
+.th2 li{font-size:32px}
+
+/* ---- 12 dendrogram ---- */
+.den{display:grid;grid-template-columns:1fr 420px;gap:56px;height:100%}
+#denSvg{width:100%;height:100%;touch-action:none}
+.bigk{font-size:120px;font-weight:700;letter-spacing:-.05em;line-height:1}
+
+/* ---- 13 single-pass ---- */
+.spg{display:grid;grid-template-columns:520px 1fr;gap:56px;height:100%}
+.queue{display:grid;gap:10px;margin-top:22px}
+.queue div{font-size:26px;color:var(--faint);padding:12px 16px;border-radius:12px;border:1px dashed #CFCFCA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.queue div.next{color:var(--ink);border:2px solid var(--ink)}
+.spmsg{font-size:28px;min-height:84px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.simbar{position:relative;width:300px;height:16px;border-radius:10px;background:var(--soft);flex:none}
+.simbar i{position:absolute;left:0;top:0;bottom:0;border-radius:10px;background:var(--ink-2)}
+.simbar u{position:absolute;top:-8px;bottom:-8px;width:3px;background:var(--c0)}
+.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;align-content:start;max-height:720px;overflow:hidden}
+.col{background:var(--surface);border:1px solid var(--line);border-top:8px solid var(--dye);border-radius:16px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+.col h4{font-size:28px;display:flex;justify-content:space-between;gap:10px}
+.col h4 small{font-size:22px}
+.col .h{font-size:25px;line-height:1.3;color:var(--ink-2);display:flex;gap:10px}
+.col .h.new{font-weight:650;color:var(--ink)}
+.col .h svg{color:var(--hc);font-size:24px;margin-top:2px}
+
+/* ---- 14 theory S/G + stemming ---- */
+.loop{width:100%;height:440px}
+.split-word{font-family:var(--mono);font-size:76px;letter-spacing:.01em;margin:26px 0 10px}
+.split-word b{background:var(--ink);color:#fff;border-radius:10px;padding:0 10px;font-weight:600}
+.split-word span{color:var(--c0)}
+
+/* ---- 15 scatter/gather ---- */
+.sgbar{display:flex;align-items:center;gap:18px;font-size:30px;color:var(--muted)}
+.sgbar b{color:var(--ink)}
+.sggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px;margin-top:28px}
+.sgc{text-align:left;cursor:pointer;background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:26px 28px;display:flex;flex-direction:column;gap:16px;font-family:var(--font);color:var(--ink);transition:border-color .2s,box-shadow .2s,transform .2s;min-height:640px}
+.sgc:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(23,24,28,.08)}
+.sgc.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.sgc .terms{font-size:42px;font-weight:680;line-height:1.1;letter-spacing:-.02em;display:flex;gap:14px;align-items:flex-start}
+.sgc .terms .dot{margin-top:12px}
+.sgc .n{font-size:26px;color:var(--muted)}
+.sgc .it b{display:block;font-size:28px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sgc .it span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:24px;color:var(--muted);line-height:1.35}
+.sgc .tick{margin-top:auto;font-size:22px;font-weight:600;opacity:0}
+.sgc.sel .tick{opacity:1}
+
+/* ---- 16 stemming ---- */
+.stm{display:grid;grid-template-columns:1fr 1fr;gap:88px;height:100%}
+.stm table{border-collapse:collapse;width:100%;font-size:34px}
+.stm td{padding:16px 6px;border-bottom:1px solid var(--line)}
+.stm td:first-child{font-family:var(--mono);color:var(--muted)}
+.stm td:last-child{font-family:var(--mono);font-weight:600}
+.stm td.ar{color:var(--faint);width:50px;text-align:center}
+.metrics{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px 24px;align-items:baseline;margin-top:36px;font-size:29px}
+.metrics .h{font-size:25px;color:var(--muted)}
+.metrics .v{font-size:60px;font-weight:700;letter-spacing:-.03em}
+.metrics .v.off{color:var(--faint)}
+
+/* ---- 17 code ---- */
+.code{display:grid;grid-template-columns:1.3fr .95fr;gap:36px;height:100%}
+.pane{background:#1B1C21;border-radius:20px;display:flex;flex-direction:column;min-height:0;overflow:hidden;color:#E6E6E3}
+.pane .bar{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid #2C2E35;font-size:20px;color:#9A9DA4}
+.pane .bar .grow{flex:1}
+.pane .btn{height:46px;font-size:20px;padding:0 18px;background:#2C2E35;color:#fff;border-color:#2C2E35}
+.pane .btn.primary{background:#fff;color:var(--ink);border-color:#fff}
+.reveal .pane pre{margin:0;padding:18px 24px;font-family:var(--mono);font-size:22px;line-height:1.45;overflow:auto;white-space:pre;flex:1;box-shadow:none;width:auto;color:#E6E6E3}
+.pane pre .k{color:#F0A6CA}.pane pre .s{color:#F5D27A}.pane pre .c{color:#7E828C}.pane pre .f{color:#8FD3C1}
+.pane .ln{opacity:0}
+.pane .ln.on{opacity:1}
+.pane .replay{font-size:17px;color:#9A9DA4;padding:12px 20px;border-top:1px solid #2C2E35}
+
+/* ---- 18 purity ---- */
+.ctab{border-collapse:separate;border-spacing:8px;font-size:26px}
+.reveal table.ctab th{font-weight:600;font-size:25px;color:var(--muted);padding:4px 8px;text-align:center;border:0}
+.ctab th svg{font-size:30px}
+.reveal table.ctab td{width:120px;height:92px;text-align:center;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:34px;font-weight:600;padding:0}
+.reveal table.ctab td.max{background:var(--ink);color:#fff;border-color:var(--ink)}
+.score{font-size:110px;font-weight:720;letter-spacing:-.05em;line-height:1}
+
+/* ---- 19 new tech ---- */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+.pipe div{border-top:4px solid var(--ink);padding-top:20px}
+.pipe div svg.i{font-size:54px;margin-bottom:14px;display:block}
+.pipe h4{font-size:38px}
+.pipe p{font-size:28px;color:var(--ink-2);margin-top:8px}
+.pipe .y{font-size:24px;color:var(--faint);margin-top:10px;display:block}
+.nt2{display:grid;grid-template-columns:1fr 1fr;gap:88px;margin-top:44px}
+.nt2 p{font-size:31px;color:var(--ink-2)}
+#raptor{width:100%;height:250px;margin-top:16px}
+
+/* ---- 20 quiz ---- */
+.quiz{display:grid;grid-template-columns:680px 1fr;gap:100px;align-items:center;height:100%}
+.qr{width:680px;height:680px;background:#fff;border:1px solid var(--line);border-radius:28px;display:grid;place-items:center;padding:36px;box-sizing:border-box}
+.reveal .qr img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated;margin:0}
+.qr .fb{text-align:center;font-size:26px;color:var(--muted);line-height:1.4}
+.qr .fb b{display:block;color:var(--ink);font-size:34px;margin-bottom:12px}
+.quiz .big{font-size:120px;font-weight:720;letter-spacing:-.045em;line-height:1}
+
+/* ---- 21 end ---- */
+.take{display:grid;grid-template-columns:1fr 1fr;gap:110px 96px;margin-top:56px}
+.take>div{display:grid;grid-template-columns:96px 1fr;gap:22px}
+.take svg.i{padding:18px;background:var(--soft);border-radius:20px;box-sizing:content-box;width:54px;height:54px}
+.take h3{font-size:46px}
+.take p{font-size:33px;color:var(--ink-2);margin-top:10px}
+.refs{position:absolute;left:112px;right:112px;bottom:72px;font-size:23px;color:var(--faint)}
+
+/* ---- 22 thanks ---- */
+.reveal .slides>section.s-thanks{padding:0}
+#thanksCanvas{position:absolute;inset:0;width:1920px;height:1080px}
+.thanks-foot{position:absolute;left:112px;right:112px;bottom:84px;display:flex;justify-content:space-between;align-items:flex-end;gap:40px}
+.thanks-foot h3{font-size:44px;font-weight:650}
+.thanks-foot p{font-size:28px;color:var(--muted);margin-top:10px}
+.thanks-foot .btn{flex:none}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+body.qa *{transition:none!important;animation:none!important}
+</style>
+</head>
+<body class="show-notes">
+<!-- Ikonkalar: Lucide v1.51.0 (ISC, assets/vendor/lucide/LICENSE); shakllar: ma'no belgilari -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-candy" viewBox="0 0 24 24"><path d="M10 7v10.9" /> <path d="M14 6.1V17" /> <path d="M16 7V3a1 1 0 0 1 1.707-.707 2.5 2.5 0 0 0 2.152.717 1 1 0 0 1 1.131 1.131 2.5 2.5 0 0 0 .717 2.152A1 1 0 0 1 21 8h-4" /> <path d="M16.536 7.465a5 5 0 0 0-7.072 0l-2 2a5 5 0 0 0 0 7.07 5 5 0 0 0 7.072 0l2-2a5 5 0 0 0 0-7.07" /> <path d="M8 17v4a1 1 0 0 1-1.707.707 2.5 2.5 0 0 0-2.152-.717 1 1 0 0 1-1.131-1.131 2.5 2.5 0 0 0-.717-2.152A1 1 0 0 1 3 16h4" /></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><path d="M12 20v2" /> <path d="M12 2v2" /> <path d="M17 20v2" /> <path d="M17 2v2" /> <path d="M2 12h2" /> <path d="M2 17h2" /> <path d="M2 7h2" /> <path d="M20 12h2" /> <path d="M20 17h2" /> <path d="M20 7h2" /> <path d="M7 20v2" /> <path d="M7 2v2" /> <rect x="4" y="4" width="16" height="16" rx="2" /> <rect x="8" y="8" width="8" height="8" rx="1" /></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" /></symbol>
+<symbol id="i-gamepad-2" viewBox="0 0 24 24"><line x1="6" x2="10" y1="11" y2="11" /> <line x1="8" x2="8" y1="9" y2="13" /> <line x1="15" x2="15.01" y1="12" y2="12" /> <line x1="18" x2="18.01" y1="10" y2="10" /> <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" /></symbol>
+<symbol id="i-git-merge" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3" /> <circle cx="6" cy="6" r="3" /> <path d="M6 21V9a9 9 0 0 0 9 9" /></symbol>
+<symbol id="i-headphones" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" /></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z" /> <path d="M20.054 15.987H3.946" /></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /> <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /> <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /></symbol>
+<symbol id="i-list-tree" viewBox="0 0 24 24"><path d="M8 5h13" /> <path d="M13 12h8" /> <path d="M13 19h8" /> <path d="M3 10a2 2 0 0 0 2 2h3" /> <path d="M3 5v12a2 2 0 0 0 2 2h3" /></symbol>
+<symbol id="i-merge" viewBox="0 0 24 24"><path d="m8 6 4-4 4 4" /> <path d="M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22" /> <path d="m20 22-5-5" /></symbol>
+<symbol id="i-message-circle-question" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" /> <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /> <path d="M12 17h.01" /></symbol>
+<symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" /> <circle cx="6" cy="18" r="3" /> <circle cx="18" cy="16" r="3" /></symbol>
+<symbol id="i-orbit" viewBox="0 0 24 24"><path d="M20.341 6.484A10 10 0 0 1 10.266 21.85" /> <path d="M3.659 17.516A10 10 0 0 1 13.74 2.152" /> <circle cx="12" cy="12" r="3" /> <circle cx="19" cy="5" r="2" /> <circle cx="5" cy="19" r="2" /></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="3" width="5" height="18" rx="1" /> <rect x="5" y="3" width="5" height="18" rx="1" /></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" /></symbol>
+<symbol id="i-rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /></symbol>
+<symbol id="i-rss" viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9" /> <path d="M4 4a16 16 0 0 1 16 16" /> <circle cx="5" cy="19" r="1" /></symbol>
+<symbol id="i-scan-search" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2" /> <path d="M17 3h2a2 2 0 0 1 2 2v2" /> <path d="M21 17v2a2 2 0 0 1-2 2h-2" /> <path d="M7 21H5a2 2 0 0 1-2-2v-2" /> <circle cx="12" cy="12" r="3" /> <path d="m16 16-1.9-1.9" /></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4" /> <path d="m18 2 4 4-4 4" /> <path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22" /> <path d="M2 6h1.972a4 4 0 0 1 3.6 2.2" /> <path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45" /></symbol>
+<symbol id="i-skip-forward" viewBox="0 0 24 24"><path d="M21 4v16" /> <path d="M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z" /></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /> <circle cx="12" cy="12" r="6" /> <circle cx="12" cy="12" r="2" /></symbol>
+<symbol id="i-timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2" /> <line x1="12" x2="15" y1="14" y2="11" /> <circle cx="12" cy="14" r="8" /></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+<symbol id="s-0" viewBox="-1 -1 2 2"><circle r=".82"/></symbol>
+<symbol id="s-1" viewBox="-1 -1 2 2"><path d="M0 -.95 .92 .7H-.92z"/></symbol>
+<symbol id="s-2" viewBox="-1 -1 2 2"><rect x="-.74" y="-.74" width="1.48" height="1.48" rx=".14"/></symbol>
+<symbol id="s-3" viewBox="-1 -1 2 2"><path d="M0 -1 1 0 0 1-1 0z"/></symbol>
+</defs></svg>
+<div id="hud">
+  <span class="plan num" id="plan"></span>
+  <button id="clock" class="paused" title="Dars taymeri (T)"><svg class="i"><use href="#i-timer"/></svg><span class="num" id="clockText">00:00</span></button>
+  <button id="gear" title="Sozlamalar (S)"><svg class="i"><use href="#i-settings"/></svg></button>
+</div>
+
+<div id="deck"><div class="reveal"><div class="slides">
+
+<!-- 1 -->
+<section class="s-title" data-id="title" data-plan="00–02" data-transition="fade">
+  <div class="keys">← → slaydlar &nbsp;&nbsp; S sozlamalar &nbsp;&nbsp; F to'liq ekran</div>
+  <svg id="swarm" viewBox="0 0 820 640" aria-hidden="true"></svg>
+  <h1>Hujjatlarni klasterlash</h1>
+  <p class="sub">Qidiruv natijalarini ma'no bo'yicha guruhlash</p>
+  <div class="meta">
+    <div><b>Rahmonaliyev Shahriyor</b><b>Uzganboyeva Hulkaroy</b></div>
+    <div>AIA1104, amaliy mashg'ulot 5<br>FDTU</div>
+  </div>
+  <aside class="notes">Salomlashing. Mavzu: qidiruv natijalarini ma'no bo'yicha guruhlash. O'ngdagi 16 ta shakl — 16 ta hujjat: avval aralash, keyin o'zi to'rt guruhga yig'iladi. Bugungi darsning butun g'oyasi shu. Oxirida QR orqali qisqa test bo'ladi.</aside>
+</section>
+
+<!-- 2 -->
+<section data-id="search" data-plan="02–05">
+  <h2>“Mars” deb qidirsak nima chiqadi?</h2>
+  <div class="body">
+    <div class="row"><div class="sbar"><svg class="i"><use href="#i-search"/></svg><span class="q" id="sq"></span><small>16 natija</small></div>
+      <button class="btn ghost" id="sAgain"><svg class="i"><use href="#i-rotate-ccw"/></svg>Qayta</button></div>
+    <div class="serp" id="serp"></div>
+  </div>
+  <aside class="notes">Auditoriyadan so'rang: “Mars deganda nimani tasavvur qilasiz?” 2–3 javob oling. Natijalarni ko'rsating: sayyora, qo'shiqchi, shokolad va IT maktab bir ro'yxatda aralash. Savol: “Sizga keragini topish uchun nechta natija o'qidingiz?” Natijalar dars uchun yozilgan namunalar.</aside>
+</section>
+
+<!-- 3 -->
+<section data-id="problem" data-plan="05–09">
+  <h2>Muammo: bitta so'rov, to'rt ma'no</h2>
+  <div class="body two">
+    <div>
+      <div class="meanings" id="meanings"></div>
+      <div class="rank" id="rank"></div>
+      <div class="pages"><span>1-sahifa, 10 ta natija</span><span>2-sahifa</span></div>
+      <p style="margin-top:20px;font-size:34px">Reyting eng mashhur ma'noni tepaga chiqaradi. Siz Mars IT School'ni izlasangiz, birinchi sahifada uni topmasligingiz mumkin.</p>
+      <p class="small">Backlinko 4 mln Google natijasini tahlil qilgan: ikkinchi sahifaga atigi 0,63% foydalanuvchi o'tgan.</p>
+    </div>
+    <div class="fragment fade-up">
+      <h3 style="color:var(--muted);font-weight:550;margin-bottom:8px">Yechim g'oyasi: klaster gipotezasi</h3>
+      <p class="quote">Bir-biriga yaqin hujjatlar odatda bir xil so'rovga birga mos keladi.</p>
+      <p class="quote-en">“Closely associated documents tend to be relevant to the same requests.”</p>
+      <p class="cite">van Rijsbergen, Information Retrieval, 1979</p>
+      <p style="margin-top:20px;font-size:34px">Demak, natijalarni o'xshashligi bo'yicha guruhlasak, har bir ma'no birinchi ekranning o'zida ko'rinadi. Bu guruhlash klasterlash deyiladi.</p>
+    </div>
+  </div>
+  <aside class="notes">Chap tomon: reyting mashhur ma'nolarni tepaga qo'yadi, ozchilik ma'nosi ikkinchi sahifaga tushadi — u yerga deyarli hech kim o'tmaydi. Keyingi bosishda o'ngda klaster gipotezasi chiqadi: o'xshash hujjatlar bir so'rovga birga mos keladi. Shuning uchun natijalarni guruhlab ko'rsatish mumkin. Adabiyot: Lewandowski [4] — qidiruv natijalarini taqdim etish.</aside>
+</section>
+
+<!-- 4 -->
+<section data-id="timeline" data-plan="09–13">
+  <h2>Qisqa tarix: beshta muhim qadam</h2>
+  <div class="body">
+    <div class="tl" id="tl">
+      <div class="tl-line"><i id="tlLine"></i></div>
+      <div class="ev fragment" data-fragment-index="0"><div class="y">1967</div><div class="pin"></div><h3>k-means</h3><p>MacQueen usulga nom beradi. Asosi — Lloyd algoritmi (1957, Bell Labs).</p><small>MacQueen, Berkeley Symposium, 1967</small></div>
+      <div class="ev fragment" data-fragment-index="1"><div class="y">1971</div><div class="pin"></div><h3>Klaster gipotezasi</h3><p>Hujjatlarni klasterlash qidiruvda ishlatiladi: o'xshash hujjatlar birga mos keladi.</p><small>Jardine, van Rijsbergen, 1971</small></div>
+      <div class="ev fragment" data-fragment-index="2"><div class="y">1992</div><div class="pin"></div><h3>Scatter/Gather</h3><p>Natijalar klasterlarga tarqatiladi, foydalanuvchi keraklisini tanlab yig'adi.</p><small>Cutting va boshq., SIGIR 1992</small></div>
+      <div class="ev fragment" data-fragment-index="3"><div class="y">2002</div><div class="pin"></div><h3>Google News</h3><p>Bir voqea haqidagi maqolalar avtomatik bitta hikoyaga guruhlanadi.</p><small>Google News, 2002-yil sentyabr</small></div>
+      <div class="ev fragment" data-fragment-index="4"><div class="y">2024</div><div class="pin"></div><h3>RAPTOR</h3><p>RAG uchun: matn bo'laklari klasterlanib, LLM xulosalari daraxti quriladi.</p><small>Sarthi va boshq., ICLR 2024</small></div>
+    </div>
+  </div>
+  <aside class="notes">Har bosishda bitta voqea. 1967 — k-means nomi (Lloyd 1957 da Bell Labs'da taklif qilgan, 1982 da chop etilgan). 1971 — klaster gipotezasi va IR'da klasterlash. 1992 — Scatter/Gather: natijalarni ko'rib chiqish. 2002 — Google News: yangiliklarni voqea bo'yicha guruhlash. 2024 — RAPTOR: bugungi RAG tizimlarida klasterlash.</aside>
+</section>
+
+<!-- 5 -->
+<section data-id="vector" data-plan="13–18">
+  <h2>Nazariya: hujjatlarni qanday solishtiramiz?</h2>
+  <p class="lead">Guruhlash uchun avval “bu ikki hujjat qanchalik o'xshash?” degan savolga javob kerak.</p>
+  <div class="body flow3">
+    <div class="stepbox fragment fade-up"><h3><span class="n">1</span>Matn → so'zlar</h3><div id="vTok"></div><p class="small" style="margin-top:16px">Kichik harf, stop-so'zlar olib tashlanadi, qo'shimchalar kesiladi.</p></div>
+    <div class="stepbox fragment fade-up"><h3><span class="n">2</span>So'zlar → vazn (TF-IDF)</h3><div id="vW"></div><div class="formula">tf-idf = tf × idf<br>idf = ln((1+N)/(1+df)) + 1</div><p class="small" style="margin-top:14px">Hamma hujjatda bor so'z (“mars”) eng kichik vazn oladi.</p></div>
+    <div class="stepbox fragment fade-up"><h3><span class="n">3</span>Vektorlar → kosinus</h3><svg id="vAng" viewBox="0 0 480 300" style="width:100%;height:330px"></svg><div class="formula">cos(a, b) = a·b / (|a|·|b|)</div><p class="small" style="margin-top:14px">1 — bir xil yo'nalish, 0 — umumiy so'z yo'q.</p></div>
+  </div>
+  <aside class="notes">Uch qadam, har biri bosish bilan chiqadi. 1) Hujjat so'zlarga ajratiladi va o'zbekcha qo'shimchalar kesiladi. 2) Har so'zga vazn: hujjatda ko'p uchrasa muhim, lekin hamma hujjatda bo'lsa — farqlamaydi (idf kichik). 3) Hujjatlar vektor bo'ladi, o'xshashlik — ular orasidagi burchak kosinusi. Bu vektor model; bugun undan guruhlash uchun foydalanamiz.</aside>
+</section>
+
+<!-- 6 -->
+<section data-id="cosine" data-plan="18–21">
+  <h2>16 ta natija orasidagi o'xshashlik</h2>
+  <p class="lead">Har katak — ikki hujjat kosinusi. Katakni bosing, keyin tartibni o'zgartiring.</p>
+  <div class="body cosgrid">
+    <svg id="cosSvg" viewBox="0 0 760 760" role="img" aria-label="Kosinus matritsasi"></svg>
+    <div>
+      <div class="seg" id="cosOrder"><button class="on" data-o="0">Qidiruv tartibi</button><button data-o="1">Ma'no bo'yicha</button></div>
+      <div style="margin-top:40px" class="row"><span class="cosval num" id="cosVal"></span><span class="small" id="cosAng"></span></div>
+      <div class="pair" id="cosPair"></div>
+    </div>
+  </div>
+  <aside class="notes">Matritsa: qora — juda o'xshash, oq — umuman o'xshamaydi. Avval “Qidiruv tartibi”da aralash ko'rinadi. “Ma'no bo'yicha”ni bosing — hujjatlar qayta tartiblanadi va to'rtta qora kvadrat paydo bo'ladi: bu klasterlar. Biror katakni bosing: o'ngda ikki hujjat, umumiy so'zlari sariq bilan, kosinus qiymati.</aside>
+</section>
+
+<!-- 7 -->
+<section data-id="compare" data-plan="21–23">
+  <h2>Klasterlash va klassifikatsiya</h2>
+  <div class="body cmp">
+    <div><h3><svg class="i"><use href="#i-filter"/></svg>Klassifikatsiya</h3>
+      <ul><li>Yorliqlar oldindan bor: “spam” va “spam emas”</li><li>Model belgilangan misollardan o'rganadi (o'qituvchi bilan)</li><li>Baholash: precision, recall, F1</li></ul>
+      <svg class="viz" id="vizClass" viewBox="0 0 760 300"></svg>
+      <p class="next">Keyingi darslarda: A8 — ML bilan klassifikatsiya, A10 — precision va recall.</p></div>
+    <div><h3><svg class="i"><use href="#i-layers"/></svg>Klasterlash</h3>
+      <ul><li>Yorliq yo'q: guruhlarni algoritm o'xshashlikdan topadi</li><li>O'qituvchisiz o'qitish</li><li>Baholash: purity (ma'nolar ma'lum bo'lsa), silhouette (yorliqsiz)</li></ul>
+      <svg class="viz" id="vizClust" viewBox="0 0 760 300"></svg>
+      <p class="next">Bugun: k-means, ierarxik, ketma-ket klasterlash, Scatter/Gather.</p></div>
+  </div>
+  <aside class="notes">Qisqa savol: “Gmail spam filtri — qaysi biri?” (klassifikatsiya, yorliqlar bor). “Google News'dagi bitta voqea haqidagi maqolalar?” (klasterlash). Keyingi darslarga bog'lang: A8 va A10.</aside>
+</section>
+
+<!-- 8 -->
+<section data-id="ktheory" data-plan="23–28">
+  <h2>Nazariya: k-means</h2>
+  <div class="body kth">
+    <div class="thumbs" id="kThumbs"></div>
+    <div>
+      <p style="font-size:36px"><b>Maqsad:</b> hujjatlarni k ta guruhga shunday bo'lish kerakki, har hujjat o'z guruhining markaziga eng yaqin bo'lsin.</p>
+      <div class="formula" style="margin-top:28px">min Σ<sub>k</sub> Σ<sub>d ∈ C<sub>k</sub></sub> (1 − cos(d, μ<sub>k</sub>))</div>
+      <ul style="margin-top:34px;font-size:33px">
+        <li><b>k</b> oldindan beriladi</li>
+        <li>Markaz <b>μ</b> — guruhdagi vektorlarning o'rtachasi</li>
+        <li>Matn uchun masofa: 1 − kosinus</li>
+        <li>Natija boshlang'ich markazlarga bog'liq, shuning uchun bir necha marta ishga tushirib eng yaxshisi olinadi</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">To'rt rasm — shu “Mars” hujjatlarida k-means'ning haqiqiy qadamlari, har biri bosish bilan chiqadi. 1) k=4 boshlang'ich markaz. 2) Har hujjat eng yaqin markazga. 3) Markaz guruh o'rtachasiga ko'chadi. 4) O'zgarish qolmaguncha takrorlanadi. O'ngda formula: masofalar yig'indisini kamaytiramiz. Keyingi slaydda o'zimiz qadam-baqadam bosib ko'ramiz.</aside>
+</section>
+
+<!-- 9 -->
+<section data-id="kmeans" data-plan="28–33">
+  <h2>K-means'ni o'zimiz yurgizamiz</h2>
+  <div class="body km">
+    <svg id="kmSvg" viewBox="0 0 900 800" role="img" aria-label="K-means xaritasi"></svg>
+    <div style="display:flex;flex-direction:column">
+      <div class="steps" id="kmSteps">
+        <div><b>1. Markazlarni tanlash</b>k ta boshlang'ich markaz (k-means++)</div>
+        <div><b>2. Tayinlash</b>Har hujjat eng yaqin markazga</div>
+        <div><b>3. Yangilash</b>Markaz guruh o'rtachasiga ko'chadi</div>
+      </div>
+      <div class="kmstat" id="kmStat"></div>
+      <div class="legend" id="kmLegend"></div>
+      <div class="shapes" id="kmShapes"></div>
+      <div class="row" style="margin-top:auto">
+        <button class="btn primary" id="kmStep"><svg class="i"><use href="#i-play"/></svg>Keyingi qadam</button>
+        <button class="btn ghost" id="kmEnd"><svg class="i"><use href="#i-skip-forward"/></svg>Oxirigacha</button>
+        <button class="btn ghost" id="kmNew" title="Yangi boshlanish"><svg class="i"><use href="#i-shuffle"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">“Keyingi qadam”ni bosing va o'ngdagi faol qadamni o'qing. Rang — klaster, shakl — haqiqiy ma'no. 2–3 iteratsiyada rang va shakl mos tushadi. Aralash tugma — yangi tasodifiy boshlanish; ba'zan yomon boshlanish bo'ladi. Hisob to'liq vektor fazosida (75 o'zak); xarita — 2D ko'rinish.</aside>
+</section>
+
+<!-- 10 -->
+<section data-id="silhouette" data-plan="33–36">
+  <h2>k ni qanday tanlaymiz?</h2>
+  <p class="lead">Silhouette: hujjat o'z guruhiga yaqin va boshqa guruhdan uzoqmi? Ustunni bosing.</p>
+  <div class="body sil">
+    <svg id="silSvg" viewBox="0 0 900 600" role="img" aria-label="Silhouette"></svg>
+    <div>
+      <svg id="silMini" viewBox="0 0 640 520"></svg>
+      <div class="formula" style="margin-top:22px">s = (b − a) / max(a, b)</div>
+      <p class="small" style="margin-top:12px">a — o'z guruhigacha o'rtacha masofa, b — eng yaqin boshqa guruhgacha.</p>
+    </div>
+  </div>
+  <aside class="notes">Eng baland ustun — k=4: biz bilgan to'rt ma'no. Boshqa ustunlarni bosing: k=2 da ma'nolar qo'shilib ketadi, k=6 da bitta ma'no bo'linadi. Real hayotda haqiqiy ma'nolar noma'lum — shuning uchun silhouette kabi ichki o'lchov kerak.</aside>
+</section>
+
+<!-- 11 -->
+<section data-id="htheory" data-plan="36–41">
+  <h2>Nazariya: ierarxik va ketma-ket klasterlash</h2>
+  <div class="body th2">
+    <div>
+      <h3>Ierarxik (pastdan yuqoriga)</h3>
+      <svg class="dia" id="hDia" viewBox="0 0 760 330"></svg>
+      <ul><li>Har hujjat alohida guruhdan boshlanadi</li><li>Har qadamda eng yaqin ikki guruh birlashadi</li><li>Natija — daraxt (dendrogramma); k ni keyin, kesib tanlaymiz</li><li>Guruhlar masofasi: single (eng yaqin), complete (eng uzoq), average (o'rtacha)</li></ul>
+    </div>
+    <div class="fragment fade-up">
+      <h3>Ketma-ket (single-pass)</h3>
+      <svg class="dia" id="sDia" viewBox="0 0 760 330"></svg>
+      <ul><li>Hujjatlar bittadan keladi (yangiliklar oqimi)</li><li>Eng o'xshash klaster markazi bilan solishtiriladi</li><li>o'xshashlik ≥ θ → shu klasterga, aks holda yangi klaster</li><li>Tez va k kerak emas, lekin natija tartibga va θ ga bog'liq</li></ul>
+    </div>
+  </div>
+  <aside class="notes">Ikki usul bitta slaydda. Chap: ierarxik — hammasi alohida, eng yaqinlar ketma-ket birlashadi, daraxtni istalgan balandlikda kesish mumkin. O'ng (bosishda chiqadi): ketma-ket klasterlash, M10 mavzusi — oqim uchun, har hujjat bir marta ko'riladi, chegara θ hal qiladi. TDT (1998) da yangiliklar oqimida yangi voqeani shunday aniqlashgan. Keyingi ikki slaydda ikkalasini sinaymiz.</aside>
+</section>
+
+<!-- 12 -->
+<section data-id="dendro" data-plan="41–45">
+  <h2>Dendrogramma: kesib ko'ring</h2>
+  <div class="body den">
+    <svg id="denSvg" viewBox="0 0 1180 800" role="img" aria-label="Dendrogramma"></svg>
+    <div style="display:flex;flex-direction:column;gap:26px">
+      <div class="seg" id="denLink"><button data-m="single">Single</button><button data-m="complete">Complete</button><button class="on" data-m="average">Average</button></div>
+      <div><span class="bigk num" id="denK">4</span> <span style="font-size:34px;font-weight:600">klaster</span></div>
+      <div id="denInfo" style="font-size:26px;color:var(--ink-2)"></div>
+      <input type="range" id="denRange" min="0" max="1000" value="500" aria-label="Kesish balandligi">
+      <p class="small">Qizil chiziqni sichqoncha bilan suring yoki slayderni ishlating.</p>
+    </div>
+  </div>
+  <aside class="notes">Qizil chiziq — kesish joyi. Chapga suring: 16 ta alohida hujjat; o'ngga: bitta umumiy guruh. To'rt ma'no qayerda ajralishini ko'rsating. Bog'lanish turlarini almashtiring: daraxt shakli o'zgaradi, lekin bu ma'lumotda to'rt ma'no uchala usulda ham to'g'ri ajraladi.</aside>
+</section>
+
+<!-- 13 -->
+<section data-id="singlepass" data-plan="45–50">
+  <h2>Yangiliklar oqimi: ketma-ket klasterlash</h2>
+  <div class="body spg">
+    <div>
+      <div class="row"><button class="btn primary" id="spNext"><svg class="i"><use href="#i-play"/></svg>Keyingi</button><button class="btn ghost" id="spAuto"><svg class="i"><use href="#i-skip-forward"/></svg>Avto</button><button class="btn ghost" id="spReset" title="Qayta"><svg class="i"><use href="#i-rotate-ccw"/></svg></button></div>
+      <div style="margin-top:30px;display:flex;justify-content:space-between;font-size:26px"><span>Chegara θ</span><b class="num" id="spThV">0.15</b></div>
+      <input type="range" id="spTh" min="0.05" max="0.5" step="0.05" value="0.15" aria-label="Chegara">
+      <label class="switch" style="margin-top:14px"><input type="checkbox" id="spStem" checked><span class="tr"></span>Stemming</label>
+      <div class="queue" id="spQueue"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;min-height:0">
+      <div class="spmsg" id="spMsg"></div>
+      <div class="cols" id="spCols"></div>
+    </div>
+  </div>
+  <aside class="notes">“Keyingi”ni 4–5 marta bosing: chiziq — eng yaqin klasterga o'xshashlik, qizil belgi — chegara θ. Chiziq belgidan o'tsa — mavjud klasterga, o'tmasa — yangi klaster. Keyin “Avto”. So'ng θ ni 0.30 ga suring: klasterlar soni keskin oshadi. 0.15 da aniq 3 mavzu. Stemming o'chirilsa, 3 mavzu hech bir θ da chiqmaydi.</aside>
+</section>
+
+<!-- 14 -->
+<section data-id="sgtheory" data-plan="50–54">
+  <h2>Nazariya: Scatter/Gather va stemming</h2>
+  <div class="body two">
+    <div>
+      <h3>Scatter/Gather — natijalarni ko'rib chiqish</h3>
+      <svg class="loop" id="sgLoop" viewBox="0 0 800 440"></svg>
+      <p style="font-size:32px;color:var(--ink-2)">Har klaster eng og'ir so'zlari bilan nomlanadi. Tanlangan klasterlar yana klasterlanadi — mavzu tobora aniqlashadi.</p>
+    </div>
+    <div class="fragment fade-up">
+      <h3>Stemming — o'zbek tili uchun</h3>
+      <div class="split-word"><b>kurs</b><span>lar</span><span>i</span></div>
+      <div class="split-word" style="margin-top:0"><b>kurs</b><span>i</span><span>ga</span></div>
+      <p style="font-size:33px">O'zbek tili agglyutinativ: bitta o'zakka ko'p qo'shimcha qo'shiladi. Stemmingsiz “kurslari” va “kursiga” ikki xil so'z bo'lib qoladi va o'xshashlik yo'qoladi.</p>
+      <p class="small">Qoida: eng uzun qo'shimchadan boshlab kesamiz, o'zak kamida 4 harf qoladi.</p>
+    </div>
+  </div>
+  <aside class="notes">Chap: Scatter/Gather sikli (Cutting va boshq., 1992): to'plam klasterlarga tarqatiladi → foydalanuvchi qiziqini tanlaydi → yig'ilgan to'plam yana klasterlanadi. Clusty (2004) natijalarni shunday mavzularga ajratgan. O'ng (bosishda): o'zbek tilida stemming — qo'shimchalarni kesish. Keyingi ikki slaydda ikkalasini sinaymiz.</aside>
+</section>
+
+<!-- 15 -->
+<section data-id="scatter" data-plan="54–58">
+  <h2>Scatter/Gather: o'zingiz tanlang</h2>
+  <div class="body">
+    <div class="sgbar"><span id="sgCrumbs"></span><span style="flex:1"></span><button class="btn primary" id="sgGather" disabled><svg class="i"><use href="#i-merge"/></svg>Gather</button><button class="btn ghost" id="sgBack"><svg class="i"><use href="#i-rotate-ccw"/></svg>Boshiga</button></div>
+    <div class="sggrid" id="sgGrid"></div>
+  </div>
+  <aside class="notes">Talabalardan biriga tanlating: masalan “sayyora” klasterini bosing, keyin Gather — u ichida yana 2 ta kichik mavzuga ajraladi. Ikki klasterni birga tanlab ham yig'ish mumkin. Klaster nomlari — markazdagi eng og'ir so'zlar, avtomatik.</aside>
+</section>
+
+<!-- 16 -->
+<section data-id="stemming" data-plan="58–61">
+  <h2>Stemming natijaga qanday ta'sir qiladi?</h2>
+  <div class="body stm">
+    <div><table id="stmTable"></table></div>
+    <div>
+      <label class="switch"><input type="checkbox" id="stmToggle" checked><span class="tr"></span><span id="stmLbl">Stemming yoqilgan</span></label>
+      <div class="panel" style="margin-top:26px;padding:22px 26px" id="stmSample"></div>
+      <div class="metrics" id="stmMetrics"></div>
+    </div>
+  </div>
+  <aside class="notes">Jadval: bitta so'zning shakllari bitta o'zakka keladi. O'ngda: lug'at hajmi, ikki Bruno Mars natijasining kosinusi va k-means'ning to'g'ri chiqqan boshlanishlari ulushi (shu sahifada 200 boshlanishda hisoblangan). Kalitni o'chirib, sariq umumiy so'zlar qanday kamayishini ko'rsating.</aside>
+</section>
+
+<!-- 17 -->
+<section data-id="code" data-plan="61–65">
+  <h2>Python'da: TF-IDF va KMeans</h2>
+  <div class="body code">
+    <div class="pane"><div class="bar"><span>klasterlash.py</span><span class="grow"></span><button class="btn" id="codeFull">To'liq kod</button></div><pre id="codePre"></pre></div>
+    <div class="pane"><div class="bar"><span>Natija</span><span class="grow"></span><button class="btn primary" id="codeRun"><svg class="i"><use href="#i-play"/></svg>Run</button></div><pre id="codeOut" style="font-size:20px"></pre>
+      <div class="replay">Oldindan haqiqiy ishga tushirilgan natijaning qayta ko'rsatilishi: Python 3.12.13, scikit-learn 1.7.1, pandas 3.0.2, 2026-10-03</div></div>
+  </div>
+  <aside class="notes">Kod: CSV o'qish (pandas — McKinney [9]), o'zbekcha tokenizator va stemmer, TfidfVectorizer, KMeans(n_clusters=4). Run — jonli ishga tushirish emas, shu kodning haqiqiy natijasini qayta ko'rsatish. Crosstab: har klasterda faqat bitta ma'no. Fayllar dars papkasida: assets/klasterlash.py, mars.csv, stop_uz.txt.</aside>
+</section>
+
+<!-- 18 -->
+<section data-id="purity" data-plan="65–68">
+  <h2>Baholash: purity</h2>
+  <p class="lead">Haqiqiy ma'nolar ma'lum bo'lsa: har klasterning asosiy ma'nosiga mos hujjatlar ulushi.</p>
+  <div class="body two" style="align-items:center">
+    <div><div class="seg" id="purBtns"></div><table class="ctab" id="purTab" style="margin-top:20px"></table></div>
+    <div>
+      <div class="formula">purity = (1/N) · Σ<sub>k</sub> max<sub>j</sub> |klaster<sub>k</sub> ∩ ma'no<sub>j</sub>|</div>
+      <div class="score num" id="purScore" style="margin-top:20px"></div>
+      <p id="purExpl" style="font-size:32px;color:var(--ink-2)"></p>
+      <p class="small" style="margin-top:12px">Ehtiyot: har hujjat alohida klaster bo'lsa ham purity = 1. Qidiruv sifatini baholash (precision, recall) — A10 da.</p>
+    </div>
+  </div>
+  <aside class="notes">Jadval: qatorlar — klasterlar, ustunlar — ma'nolar; qora katak — qatordagi eng katta son. Purity = qora kataklar yig'indisi / 16. “Yomon misol” — stemmingsiz va omadsiz boshlanish: ikki ma'no bitta klasterga tushgan. Tuzoq: 16 ta klaster ham purity 1 beradi.</aside>
+</section>
+
+<!-- 19 -->
+<section data-id="newtech" data-plan="68–71">
+  <h2>Bugungi texnologiyalarda klasterlash</h2>
+  <div class="body">
+    <div class="pipe">
+      <div><svg class="i"><use href="#i-cpu"/></svg><h4>Embedding</h4><p>Butun matn bitta zich vektor; “qidiruv” ≈ “izlash”</p><span class="y">word2vec 2013, Sentence-BERT 2019</span></div>
+      <div><svg class="i"><use href="#i-scan-search"/></svg><h4>UMAP</h4><p>Yuzlab o'lchamni bir necha o'lchamga tushirish</p></div>
+      <div><svg class="i"><use href="#i-layers"/></svg><h4>HDBSCAN</h4><p>Zichlikka asoslangan: k kerak emas, shovqinni ajratadi</p></div>
+      <div><svg class="i"><use href="#i-list-tree"/></svg><h4>BERTopic</h4><p>Klaster nomi c-TF-IDF bilan</p><span class="y">2022</span></div>
+      <div><svg class="i"><use href="#i-message-circle-question"/></svg><h4>LLM nomlash</h4><p>Klasterdagi matnlardan qisqa mavzu nomi</p></div>
+    </div>
+    <div class="nt2">
+      <div><h3>RAG'da: RAPTOR (2024)</h3><p style="margin-top:12px">Bo'laklar klasterlanadi, har klaster LLM bilan xulosaga aylanadi, xulosalar yana klasterlanadi — savolga turli darajada javob topiladi.</p><svg id="raptor" viewBox="0 0 760 240"></svg></div>
+      <div><h3>Vektor bazalar</h3><p style="margin-top:12px">Qdrant, Milvus, FAISS millionlab vektorda tez qidiradi. IVF indekslari vektorlarni k-means bilan bo'laklarga ajratadi va so'rovni faqat eng yaqin bo'laklarda qidiradi.</p><p class="small" style="margin-top:20px">Paaß, Giesselbach, Foundation Models for NLP, 2023 [7]</p></div>
+    </div>
+  </div>
+  <aside class="notes">Bugungi kunga ko'prik: TF-IDF o'rnini embeddinglar egalladi, k-means o'rnida ko'pincha HDBSCAN, klaster nomini LLM yozadi — BERTopic shu zanjir. RAPTOR klasterlash orqali xulosalar daraxtini quradi. Vektor bazalarda klasterlash qidiruvni tezlashtiradi — klaster gipotezasining zamonaviy ko'rinishi.</aside>
+</section>
+
+<!-- 20 -->
+<section data-id="quiz" data-plan="71–76">
+  <div class="quiz">
+    <div class="qr" id="qrBox"><img src="qr.png" alt="Test uchun QR kod" id="qrImg"></div>
+    <div>
+      <p class="big">Qisqa test</p>
+      <p style="font-size:42px;margin-top:30px;color:var(--ink-2)">QR kodni telefon kamerasi bilan skanerlang.<br>11 ta savol, 4–5 daqiqa.</p>
+      <p class="small" style="margin-top:30px">Natijangiz yuborgandan keyin o'zingizga ko'rinadi.</p>
+    </div>
+  </div>
+  <aside class="notes">QR'ni ko'rsating, 4–5 daqiqa bering. Natijalar e'lon qilinmaydi — har kim o'zinikini ko'radi. qr.png index.html bilan bir papkada bo'lishi kerak.</aside>
+</section>
+
+<!-- 21 -->
+<section data-id="end" data-plan="76–78">
+  <h2>Xulosa</h2>
+  <div class="body" style="display:flex;flex-direction:column">
+    <div class="take">
+      <div class="fragment fade-up"><svg class="i"><use href="#i-target"/></svg><div><h3>Klaster gipotezasi</h3><p>O'xshash hujjatlar bir so'rovga birga mos keladi — shuning uchun natijalarni guruhlaymiz.</p></div></div>
+      <div class="fragment fade-up"><svg class="i"><use href="#i-git-merge"/></svg><div><h3>K-means va ierarxik</h3><p>k-means uchun k kerak (silhouette yordam beradi); dendrogrammani istalgan joydan kesamiz.</p></div></div>
+      <div class="fragment fade-up"><svg class="i"><use href="#i-rss"/></svg><div><h3>Ketma-ket klasterlash</h3><p>Oqim uchun: bitta o'tish va chegara θ. Tez, lekin tartibga bog'liq.</p></div></div>
+      <div class="fragment fade-up"><svg class="i"><use href="#i-layers"/></svg><div><h3>Scatter/Gather → RAPTOR</h3><p>Natijalarni ko'rib chiqishdan RAG'gacha. O'zbek matni uchun stemming muhim.</p></div></div>
+    </div>
+  </div>
+  <p class="refs">[4] Lewandowski D. Understanding Search Engines, 2023. [7] Paaß G., Giesselbach S. Foundation Models for Natural Language Processing, 2023. [9] McKinney W. Python for Data Analysis, 3rd ed., 2022.</p>
+  <aside class="notes">To'rt xulosa, har biri bosishda chiqadi. Qisqa takrorlang va savol-javobga o'ting.</aside>
+</section>
+
+<!-- 22 -->
+<section class="s-thanks" data-id="thanks" data-plan="78–80" data-transition="zoom">
+  <canvas id="thanksCanvas" width="1920" height="1080"></canvas>
+  <div class="thanks-foot">
+    <div><h3>E'tiboringiz uchun rahmat!</h3><p>Savollaringiz bo'lsa, marhamat — savol-javob.</p></div>
+    <button class="btn ghost" id="thanksAgain"><svg class="i"><use href="#i-rotate-ccw"/></svg>Yana</button>
+  </div>
+  <aside class="notes">Nuqtalar avval sochilib, keyin “Rahmat!” so'ziga yig'iladi, so'ng “Savollar?” ga aylanadi — xuddi klasterlash kabi. Savol-javob shu yerda.</aside>
+</section>
+
+</div></div></div>
+
+<div id="notes"><b>Eslatma</b><div id="notesText"></div></div>
+<div id="scrim"></div>
+<aside id="settings" aria-hidden="true">
+  <button class="x" id="setClose" aria-label="Yopish"><svg class="i"><use href="#i-x"/></svg></button>
+  <h3>Sozlamalar</h3>
+  <div class="opt"><div>Eslatmalar<small>Har slayd ostida nima deyish kerakligi</small></div><label class="switch"><input type="checkbox" data-set="notes"><span class="tr"></span></label></div>
+  <div class="opt"><div>Dars taymeri<small>Yuqori burchakdagi soat, start/stop — T</small></div><label class="switch"><input type="checkbox" data-set="timer"><span class="tr"></span></label></div>
+  <div class="opt"><div>Reja vaqti<small>“Reja: 23–28 daq.” — kechiksangiz qizil bo'ladi</small></div><label class="switch"><input type="checkbox" data-set="plan"><span class="tr"></span></label></div>
+  <div class="keys">
+    <span>← →</span><span>Slaydlar (Space ham)</span>
+    <span>S</span><span>Sozlamalar</span>
+    <span>T</span><span>Taymer start/stop</span>
+    <span>E</span><span>Ma'ruzachi oynasi (eslatmalar alohida oynada)</span>
+    <span>F</span><span>To'liq ekran</span>
+    <span>O</span><span>Barcha slaydlar ko'rinishi</span>
+    <span>Esc</span><span>Panelni yopish</span>
+  </div>
+</aside>
+
+<script src="assets/vendor/reveal/reveal.js"></script>
+<script src="assets/vendor/reveal/plugin/notes.js"></script>
+<script src="assets/vendor/gsap/gsap.min.js"></script>
+<script src="assets/ir.js"></script>
+<script>
+(function () {
+'use strict';
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var params = new URLSearchParams(location.search), QA = params.has('qa');
+if (QA) {
+  document.body.classList.add('qa');
+  window.addEventListener('error', function (e) { document.body.setAttribute('data-err', (document.body.getAttribute('data-err') || '') + ' | ' + e.message + ' @' + e.lineno); });
+}
+var REDUCED = QA || matchMedia('(prefers-reduced-motion: reduce)').matches;
+var NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent, html) {
+  var e = tag.indexOf('svg:') === 0 ? document.createElementNS(NS, tag.slice(4)) : document.createElement(tag);
+  if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (html != null) e.innerHTML = html;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(parent, x, y, s, attrs) { var a = Object.assign({ x: x, y: y, fill: 'var(--ink)', 'font-size': 22, 'font-family': 'Onest, sans-serif' }, attrs || {}); var t = el('svg:text', a, parent); t.textContent = s; return t; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function icon(id) { return '<svg class="i"><use href="#i-' + id + '"/></svg>'; }
+function cssVar(v) { var m = /var\((--[\w-]+)\)/.exec(v); return m ? getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() : v; }
+
+var MC = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
+var PAL = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)'];
+var MICON = ['orbit', 'music', 'candy', 'laptop'];
+var LABELS = IR.MARS.map(function (d) { return d.y; }), TEXTS = IR.MARS.map(function (d) { return d.s; });
+var VS = IR.tfidf(TEXTS, true), VN = IR.tfidf(TEXTS, false), PROJ = IR.pca2(VS.X);
+
+// Klaster ID → eng ko'p mos ma'no rangi (faqat ko'rsatish uchun)
+function colorMap(assign) {
+  var cnt = {}, ids = [];
+  assign.forEach(function (c, i) { if (ids.indexOf(c) < 0) ids.push(c); var k = c + ':' + LABELS[i]; cnt[k] = (cnt[k] || 0) + 1; });
+  var pairs = Object.keys(cnt).map(function (k) { var p = k.split(':'); return [cnt[k], +p[0], +p[1]]; }).sort(function (a, b) { return b[0] - a[0]; });
+  var map = {}, used = {};
+  pairs.forEach(function (p) { if (!(p[1] in map) && !used[p[2]]) { map[p[1]] = p[2]; used[p[2]] = 1; } });
+  var extra = 4; ids.forEach(function (c) { if (!(c in map)) map[c] = extra++; });
+  return function (c) { return PAL[map[c] % PAL.length]; };
+}
+// 2D xarita koordinatalari (ko'rsatish uchun ozgina itarish bilan)
+function layout2d(W, H, pad, R) {
+  var pts = PROJ.points, xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+  var mnx = Math.min.apply(null, xs), mxx = Math.max.apply(null, xs), mny = Math.min.apply(null, ys), mxy = Math.max.apply(null, ys);
+  var s = Math.min((W - 2 * pad) / (mxx - mnx), (H - 2 * pad) / (mxy - mny)), ox = (W - (mxx - mnx) * s) / 2, oy = (H - (mxy - mny) * s) / 2;
+  function map(p) { return [ox + (p[0] - mnx) * s, H - (oy + (p[1] - mny) * s)]; }
+  var P = pts.map(map);
+  for (var it = 0; it < 80; it++) for (var a = 0; a < P.length; a++) for (var b = a + 1; b < P.length; b++) {
+    var dx = P[b][0] - P[a][0], dy = P[b][1] - P[a][1], d = Math.hypot(dx, dy) || .01;
+    if (d < R) { var m = (R - d) / 2; dx /= d; dy /= d; P[a][0] -= dx * m; P[a][1] -= dy * m; P[b][0] += dx * m; P[b][1] += dy * m; }
+  }
+  return { P: P, map: map };
+}
+function shape(g, x, y, kind, r, fill) { return el('svg:use', { href: '#s-' + kind, x: x - r, y: y - r, width: 2 * r, height: 2 * r, fill: fill || 'var(--faint)' }, g); }
+
+// ---------- Settings / HUD ----------
+var DEF = { notes: true, timer: true, plan: true }, KEY = 'a5-klasterlash-settings-v3', settings = Object.assign({}, DEF);
+try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) for (var k in DEF) if (typeof sv[k] === 'boolean') settings[k] = sv[k]; } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) {} }
+function apply() {
+  document.body.classList.toggle('show-notes', settings.notes);
+  $('#clock').style.display = settings.timer ? '' : 'none';
+  $('#plan').style.display = settings.plan ? '' : 'none';
+  $$('#settings [data-set]').forEach(function (i) { i.checked = settings[i.dataset.set]; });
+  setTimeout(function () { if (window.Reveal && Reveal.isReady()) Reveal.layout(); }, 380);
+}
+$$('#settings [data-set]').forEach(function (i) { i.addEventListener('change', function () { settings[i.dataset.set] = i.checked; save(); apply(); }); });
+function settingsOpen() { return $('#settings').classList.contains('open'); }
+function openSettings(o) {
+  $('#settings').classList.toggle('open', o); $('#scrim').classList.toggle('open', o); $('#settings').setAttribute('aria-hidden', o ? 'false' : 'true');
+  if (o) setTimeout(function () { $('#settings input').focus(); }, 60); else if (document.activeElement && $('#settings').contains(document.activeElement)) document.activeElement.blur();
+}
+$('#gear').onclick = function () { openSettings(true); };
+$('#setClose').onclick = function () { openSettings(false); };
+$('#scrim').onclick = function () { openSettings(false); };
+document.addEventListener('keydown', function (e) {
+  if (!settingsOpen()) return;
+  if (e.key === 'Escape' || e.key === 's' || e.key === 'S') { e.preventDefault(); e.stopPropagation(); openSettings(false); }
+}, true);
+var run = false, t0 = 0, acc = 0;
+function ms() { return acc + (run ? Date.now() - t0 : 0); }
+function toggleClock() { if (run) { acc += Date.now() - t0; run = false; } else { t0 = Date.now(); run = true; } $('#clock').classList.toggle('paused', !run); tick(); }
+function tick() {
+  var s = Math.floor(ms() / 1000); $('#clockText').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  var cur = window.Reveal && Reveal.isReady() && Reveal.getCurrentSlide();
+  if (cur && cur.dataset.plan) { var end = +cur.dataset.plan.split('–')[1]; $('#plan').classList.toggle('late', ms() > 0 && s / 60 > end); }
+}
+setInterval(tick, 500);
+$('#clock').onclick = toggleClock;
+
+var hooks = {};
+
+// 1. Sarlavha: 16 hujjat aralash → 4 guruh
+hooks.title = {
+  init: function () {
+    var svg = $('#swarm'), r = IR.rng(4), self = this, centers = [[220, 170], [600, 170], [220, 470], [600, 470]];
+    this.home = IR.MARS.map(function (d, i) { var c = centers[d.y], k = IR.MARS.slice(0, i).filter(function (e) { return e.y === d.y; }).length, a = k * Math.PI / 2 + .78; return [c[0] + Math.cos(a) * 60, c[1] + Math.sin(a) * 60]; });
+    this.rand = IR.MARS.map(function () { return [70 + r() * 680, 60 + r() * 500]; });
+    this.labels = centers.map(function (c, y) { return txt(svg, c[0], c[1] + 128, IR.MEANINGS[y].name, { 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 600, fill: 'var(--ink-2)', opacity: 0 }); });
+    this.dots = IR.MARS.map(function (d) { var g = el('svg:g', {}, svg); el('svg:use', { href: '#s-' + d.y, x: -22, y: -22, width: 44, height: 44, fill: '#B9BBC0' }, g); return g; });
+  },
+  enter: function () {
+    var self = this; if (this.tl) this.tl.kill();
+    this.dots.forEach(function (g, i) { gsap.set(g, { x: self.rand[i][0], y: self.rand[i][1] }); g.firstChild.setAttribute('fill', '#B9BBC0'); });
+    gsap.set(this.labels, { opacity: 0 });
+    var d = REDUCED ? 0 : 1, tl = this.tl = gsap.timeline({ delay: .8 * d });
+    tl.to(this.dots, { x: function (i) { return self.home[i][0]; }, y: function (i) { return self.home[i][1]; }, duration: 1.6 * d, ease: 'expo.inOut', stagger: .025 * d })
+      .add(function () { self.dots.forEach(function (g, i) { gsap.to(g.firstChild, { attr: { fill: cssVar(MC[IR.MARS[i].y]) }, duration: .6 * d }); }); }, d ? '-=0.5' : 0)
+      .to(this.labels, { opacity: 1, duration: .6 * d, stagger: .08 * d }, d ? '-=0.2' : 0);
+  }
+};
+
+// 2. Qidiruv
+hooks.search = {
+  init: function () {
+    var box = $('#serp'), self = this;
+    this.items = IR.MARS.map(function (d) { return el('div', { class: 'res' }, box, '<div class="u">' + esc(d.u) + '</div><div class="t">' + esc(d.t) + '</div><div class="s">' + esc(d.s) + '</div>'); });
+    $('#sAgain').onclick = function () { self.play(); };
+  },
+  play: function () {
+    var q = $('#sq'); if (this.tl) this.tl.kill();
+    if (REDUCED) { q.textContent = 'Mars'; gsap.set(this.items, { opacity: 1, y: 0 }); return; }
+    gsap.set(this.items, { opacity: 0, y: 14 }); q.innerHTML = '<span class="caret"></span>';
+    var tl = this.tl = gsap.timeline({ delay: .3 }), w = 'Mars';
+    for (var i = 1; i <= 4; i++) (function (i) { tl.add(function () { q.innerHTML = esc(w.slice(0, i)) + '<span class="caret"></span>'; }, i * .17); })(i);
+    tl.to(this.items, { opacity: 1, y: 0, duration: .5, ease: 'power3.out', stagger: .045 }, 1.1);
+  },
+  enter: function () { if (!this.done) { this.play(); this.done = true; } }
+};
+
+// 3. Muammo
+hooks.problem = {
+  init: function () {
+    $('#meanings').innerHTML = IR.MEANINGS.map(function (m, i) { return '<span><svg class="i" style="background:' + MC[i] + '"><use href="#i-' + MICON[i] + '"/></svg>' + esc(m.name) + '</span>'; }).join('');
+    var order = [0, 1, 0, 1, 2, 0, 1, 0, 2, 1, 3, 2, 3, 2, 3, 3], bar = $('#rank');
+    this.cells = order.map(function (y) { var i = el('i', null, bar, icon(MICON[y])); i.style.background = MC[y]; return i; });
+  },
+  enter: function () { if (!REDUCED) gsap.from(this.cells, { scaleY: 0, transformOrigin: 'bottom', duration: .5, ease: 'back.out(1.6)', stagger: .04, delay: .3 }); }
+};
+
+// 4. Tarix chizig'i fragmentlar bilan
+hooks.timeline = {
+  sync: function () { var n = $$('#tl .ev.visible').length, f = n ? Math.min(1, (n - 1) / 4 * .8 + .1) : 0; gsap.to('#tlLine', { scaleX: QA ? 1 : f, duration: REDUCED ? 0 : .7, ease: 'power2.out' }); },
+  enter: function () { this.sync(); }
+};
+
+// 5. Vektor nazariyasi
+hooks.vector = {
+  init: function () {
+    var a = 0, b = 8;
+    $('#vTok').innerHTML = '<p style="font-size:29px;color:var(--muted);margin-bottom:14px">“' + esc(IR.MARS[a].s) + '”</p>' + VS.tokens[a].map(function (t) { return '<span class="tok">' + esc(t) + '</span>'; }).join('');
+    var x = VS.X[a], top = x.map(function (v, j) { return [v, j]; }).filter(function (p) { return p[0] > 0; }).sort(function (p, q) { return q[0] - p[0]; });
+    var shown = top.slice(0, 5), mj = VS.terms.indexOf('mars'); if (!shown.some(function (p) { return p[1] === mj; })) shown.push([x[mj], mj]);
+    var mx = top[0][0];
+    $('#vW').innerHTML = shown.map(function (p) { return '<div class="wbar"><span class="mono">' + esc(VS.terms[p[1]]) + '</span><span><i style="width:' + (p[0] / mx * 100) + '%;' + (p[1] === mj ? 'background:var(--faint)' : '') + '"></i></span><span class="w num">' + p[0].toFixed(2) + '</span></div>'; }).join('');
+    var c = IR.cosine(VS.X[a], VS.X[b]), ang = Math.acos(c), svg = $('#vAng'), ox = 40, oy = 270, L = 280, a1 = -0.25, a2 = a1 - ang;
+    el('svg:path', { d: 'M' + ox + ' ' + oy + ' L' + (ox + 90 * Math.cos(a1)) + ' ' + (oy + 90 * Math.sin(a1)) + ' A90 90 0 0 0 ' + (ox + 90 * Math.cos(a2)) + ' ' + (oy + 90 * Math.sin(a2)) + 'Z', fill: 'var(--soft)' }, svg);
+    el('svg:line', { x1: ox, y1: oy, x2: ox + L * Math.cos(a1), y2: oy + L * Math.sin(a1), stroke: 'var(--ink)', 'stroke-width': 6, 'stroke-linecap': 'round' }, svg);
+    el('svg:line', { x1: ox, y1: oy, x2: ox + L * Math.cos(a2), y2: oy + L * Math.sin(a2), stroke: 'var(--c0)', 'stroke-width': 6, 'stroke-linecap': 'round' }, svg);
+    txt(svg, ox + (L + 12) * Math.cos(a1), oy + (L + 12) * Math.sin(a1) + 8, 'A', { 'font-size': 26, 'font-weight': 700 });
+    txt(svg, ox + (L + 12) * Math.cos(a2), oy + (L + 12) * Math.sin(a2), 'B', { 'font-size': 26, 'font-weight': 700, fill: 'var(--c0)' });
+    txt(svg, 470, 60, 'cos = ' + c.toFixed(2), { 'text-anchor': 'end', 'font-size': 52, 'font-weight': 700 });
+    txt(svg, 470, 96, 'A: Perseverance, B: Rover tuproq', { 'text-anchor': 'end', 'font-size': 20, fill: 'var(--muted)' });
+  }
+};
+
+// 6. Kosinus matritsasi
+hooks.cosine = {
+  init: function () {
+    var svg = $('#cosSvg'), n = 16, self = this; this.cs = 42; this.off = 64;
+    this.byMeaning = IR.MARS.map(function (_, i) { return i; }).sort(function (a, b) { return LABELS[a] - LABELS[b] || a - b; });
+    this.natural = IR.MARS.map(function (_, i) { return i; });
+    this.cells = []; this.rowMarks = []; this.colMarks = [];
+    for (var i = 0; i < n; i++) {
+      this.rowMarks.push(shape(svg, 0, 0, LABELS[i], 12, MC[LABELS[i]]));
+      this.colMarks.push(shape(svg, 0, 0, LABELS[i], 12, MC[LABELS[i]]));
+      for (var j = 0; j < n; j++) {
+        var c = IR.cosine(VS.X[i], VS.X[j]);
+        var r = el('svg:rect', { width: this.cs - 3, height: this.cs - 3, rx: 5, fill: '#17181C', 'fill-opacity': i === j ? 1 : Math.max(.05, Math.pow(c, .7)), style: 'cursor:pointer' }, svg);
+        r.dataset.i = i; r.dataset.j = j;
+        r.addEventListener('click', function () { self.pick(+this.dataset.i, +this.dataset.j); });
+        this.cells.push(r);
+      }
+    }
+    this.sel = el('svg:rect', { width: this.cs + 3, height: this.cs + 3, rx: 7, fill: 'none', stroke: 'var(--c0)', 'stroke-width': 4, 'pointer-events': 'none' }, svg);
+    $$('#cosOrder button').forEach(function (b) { b.onclick = function () { $$('#cosOrder button').forEach(function (x) { x.classList.toggle('on', x === b); }); self.order(+b.dataset.o ? self.byMeaning : self.natural, true); }; });
+    this.pi = 0; this.pj = 8;
+    this.order(QA ? this.byMeaning : this.natural, false);
+    if (QA) $$('#cosOrder button').forEach(function (x) { x.classList.toggle('on', x.dataset.o === '1'); });
+    this.pick(0, 8);
+  },
+  pos: function (i) { return this.off + this.cur.indexOf(i) * this.cs; },
+  order: function (ord, animate) {
+    var self = this, d = animate && !REDUCED ? .9 : 0; this.cur = ord;
+    this.cells.forEach(function (r) { gsap.to(r, { attr: { x: self.pos(+r.dataset.j), y: self.pos(+r.dataset.i) }, duration: d, ease: 'power3.inOut' }); });
+    this.rowMarks.forEach(function (u, i) { gsap.to(u, { attr: { x: self.off - 36, y: self.pos(i) + 7 }, duration: d, ease: 'power3.inOut' }); });
+    this.colMarks.forEach(function (u, i) { gsap.to(u, { attr: { x: self.pos(i) + 7, y: self.off - 36 }, duration: d, ease: 'power3.inOut' }); });
+    gsap.to(this.sel, { attr: { x: self.pos(this.pj) - 3, y: self.pos(this.pi) - 3 }, duration: d, ease: 'power3.inOut' });
+  },
+  pick: function (i, j) {
+    this.pi = i; this.pj = j;
+    gsap.set(this.sel, { attr: { x: this.pos(j) - 3, y: this.pos(i) - 3 } });
+    var c = IR.cosine(VS.X[i], VS.X[j]);
+    $('#cosVal').textContent = 'cos = ' + c.toFixed(2);
+    $('#cosAng').textContent = 'burchak ≈ ' + Math.round(Math.acos(Math.min(1, c)) * 180 / Math.PI) + '°';
+    var A = VS.tokens[i], B = VS.tokens[j];
+    function doc(k, me, other) { return '<div class="doc"><b><span class="dot" style="background:' + MC[LABELS[k]] + '"></span>' + esc(IR.MARS[k].t) + '</b>' + me.map(function (t) { return '<span class="tok' + (other.indexOf(t) >= 0 ? ' sh' : '') + '">' + esc(t) + '</span>'; }).join('') + '</div>'; }
+    $('#cosPair').innerHTML = doc(i, A, B) + (i === j ? '' : doc(j, B, A));
+  }
+};
+
+// 7. Klassifikatsiya va klasterlash sxemalari
+hooks.compare = {
+  init: function () {
+    var a = $('#vizClass'), b = $('#vizClust'), r = IR.rng(3), tags = [['ilm-fan', 'var(--c3)'], ['musiqa', 'var(--c1)']];
+    for (var i = 0; i < 6; i++) {
+      var x = 40 + (i % 3) * 120, y = 50 + Math.floor(i / 3) * 120, t = tags[i % 2];
+      el('svg:rect', { x: x, y: y, width: 90, height: 62, rx: 10, fill: 'var(--soft)' }, a);
+      el('svg:rect', { x: x + 8, y: y + 72, width: 74, height: 26, rx: 13, fill: t[1] }, a);
+      txt(a, x + 45, y + 91, t[0], { 'text-anchor': 'middle', 'font-size': 16, fill: '#fff', 'font-weight': 650 });
+    }
+    el('svg:path', { d: 'M420 150 H500 M486 138 L502 150 L486 162', stroke: 'var(--ink)', 'stroke-width': 4, fill: 'none' }, a);
+    el('svg:rect', { x: 520, y: 105, width: 200, height: 90, rx: 16, fill: 'var(--ink)' }, a);
+    txt(a, 620, 145, 'model', { 'text-anchor': 'middle', 'font-size': 26, fill: '#fff', 'font-weight': 650 });
+    txt(a, 620, 176, "yorliqni o'rganadi", { 'text-anchor': 'middle', 'font-size': 18, fill: '#C9CBCF' });
+    var centers = [[150, 150], [380, 110], [600, 170]], cols = ['var(--c0)', 'var(--c3)', 'var(--c2)'];
+    centers.forEach(function (c, k) {
+      el('svg:circle', { cx: c[0], cy: c[1], r: 92, fill: 'none', stroke: cols[k], 'stroke-width': 3, 'stroke-dasharray': '8 8' }, b);
+      for (var j = 0; j < 5; j++) { var ang = r() * 6.28, d = 14 + r() * 46; shape(b, c[0] + Math.cos(ang) * d, c[1] + Math.sin(ang) * d, k, 13, cols[k]); }
+    });
+  }
+};
+
+// 8. K-means nazariyasi: haqiqiy qadamlar
+hooks.ktheory = {
+  init: function () {
+    var r = IR.kmeans(VS.X, 4, 11), H = r.history, box = $('#kThumbs'), last = H[H.length - 1];
+    [{ t: 'Markazlarni tanlash', c: H[0].centers, a: null }, { t: 'Tayinlash', c: H[0].centers, a: H[0].assign },
+     { t: 'Markazni yangilash', c: H[1].centers, a: H[0].assign }, { t: 'Takrorlash → natija', c: last.centers, a: last.assign }].forEach(function (st, k) {
+      var d = el('div', { class: 'thumb fragment fade-up' }, box, '<p><span>' + (k + 1) + '</span>' + st.t + '</p>');
+      var svg = el('svg:svg', { viewBox: '0 0 420 250' }, d), lay = layout2d(420, 250, 38, 28), cm = st.a ? colorMap(st.a) : null;
+      lay.P.forEach(function (p, i) { shape(svg, p[0], p[1], LABELS[i], 12, st.a ? cm(st.a[i]) : '#B9BBC0'); });
+      st.c.forEach(function (c, j) { var q = lay.map(PROJ.project(c)); el('svg:circle', { cx: q[0], cy: q[1], r: 11, fill: '#fff', stroke: cm ? cm(j) : 'var(--ink)', 'stroke-width': 4 }, svg); });
+    });
+  }
+};
+
+// 9. K-means demo
+hooks.kmeans = {
+  init: function () {
+    var svg = $('#kmSvg'), self = this;
+    this.lay = layout2d(900, 800, 90, 52);
+    this.gl = el('svg:g', {}, svg); this.gp = el('svg:g', {}, svg); this.gc = el('svg:g', {}, svg);
+    this.pts = this.lay.P.map(function (p, i) { return shape(self.gp, p[0], p[1], LABELS[i], 20, '#C9CBCF'); });
+    $('#kmShapes').innerHTML = IR.MEANINGS.map(function (m, i) { return '<span><svg viewBox="-1 -1 2 2"><use href="#s-' + i + '" fill="var(--ink-2)"/></svg>' + esc(m.name) + '</span>'; }).join('');
+    this.seed = 11;
+    $('#kmStep').onclick = function () { self.go(self.k + 1); };
+    $('#kmEnd').onclick = function () { self.go(self.steps.length - 1); };
+    $('#kmNew').onclick = function () { self.seed = Math.floor(Math.random() * 1e6) + 1; self.build(); };
+    this.build();
+  },
+  build: function () {
+    var r = IR.kmeans(VS.X, 4, this.seed), H = r.history, steps = [{ c: H[0].centers, a: null, ph: 0 }];
+    for (var i = 0; i < H.length - 1; i++) {
+      steps.push({ c: H[i].centers, a: H[i].assign, ph: 1 });
+      steps.push({ c: H[i + 1].centers, a: H[i].assign, ph: 2 });
+      if (i > 0 && H[i].assign.join() === H[i - 1].assign.join()) break;
+    }
+    this.steps = steps; this.cg = null; this.go(QA ? steps.length - 1 : 0, true);
+  },
+  go: function (k, instant) {
+    k = Math.max(0, Math.min(this.steps.length - 1, k)); this.k = k;
+    var st = this.steps[k], self = this, cm = st.a ? colorMap(st.a) : null, d = instant || REDUCED ? 0 : .7;
+    var col = st.c.map(function (_, j) { return cm ? cm(j) : 'var(--ink)'; });
+    var cc = st.c.map(function (c) { return self.lay.map(PROJ.project(c)); });
+    this.gl.innerHTML = '';
+    if (st.a) st.a.forEach(function (a, i) { el('svg:line', { x1: self.lay.P[i][0], y1: self.lay.P[i][1], x2: cc[a][0], y2: cc[a][1], stroke: col[a], 'stroke-width': 2, opacity: st.ph === 1 ? .45 : .18 }, self.gl); });
+    this.pts.forEach(function (u, i) { gsap.to(u, { attr: { fill: st.a ? cssVar(col[st.a[i]]) : '#C9CBCF' }, duration: d }); });
+    if (!this.cg) { this.gc.innerHTML = ''; this.cg = cc.map(function () { var g = el('svg:g', {}, self.gc); el('svg:circle', { r: 22, fill: '#fff', 'stroke-width': 5 }, g); el('svg:path', { d: 'M-9 0H9M0 -9V9', 'stroke-width': 4, 'stroke-linecap': 'round' }, g); return g; }); d = 0; }
+    this.cg.forEach(function (g, j) { gsap.to(g, { x: cc[j][0], y: cc[j][1], duration: d, ease: 'power3.inOut' }); g.firstChild.setAttribute('stroke', col[j]); g.lastChild.setAttribute('stroke', col[j]); });
+    $$('#kmSteps div').forEach(function (s, i) { s.classList.toggle('on', i === st.ph); });
+    var done = k === this.steps.length - 1;
+    $('#kmStat').innerHTML = 'Iteratsiya <b class="num">' + Math.ceil(k / 2) + '</b>' + (done ? ' — o\'zgarish yo\'q, tugadi' : '') + (st.a ? '<span class="small" style="margin-left:18px">purity ' + IR.purity(st.a, LABELS).toFixed(2) + '</span>' : '');
+    $('#kmStep').disabled = done;
+    $('#kmLegend').innerHTML = st.c.map(function (c, j) {
+      var n = st.a ? st.a.filter(function (a) { return a === j; }).length : 0;
+      return '<div><span class="dot" style="background:' + col[j] + '"></span><b>' + esc(IR.topTerms(c, VS.terms, 3, ['mars']).join(', ')) + '</b>' + (st.a ? '<span class="small">' + n + ' ta</span>' : '') + '</div>';
+    }).join('');
+  }
+};
+
+// 10. Silhouette
+hooks.silhouette = {
+  init: function () {
+    var ks = [2, 3, 4, 5, 6], self = this;
+    this.res = ks.map(function (k) { var best = null; for (var s = 1; s <= 10; s++) { var a = IR.kmeans(VS.X, k, s).assign, v = IR.silhouette(VS.X, a); if (!best || v > best.v) best = { v: v, a: a }; } return best; });
+    var svg = $('#silSvg'), L = 90, B = 520, T = 40, W = 900, mx = .45, bw = (W - L) / ks.length;
+    for (var g = 0; g <= 3; g++) { var y = B - (B - T) * g / 3; el('svg:line', { x1: L, x2: W, y1: y, y2: y, stroke: 'var(--line)', 'stroke-width': 2 }, svg); txt(svg, L - 16, y + 8, (mx * g / 3).toFixed(2), { 'text-anchor': 'end', fill: 'var(--faint)', 'font-size': 22 }); }
+    var best = this.res.reduce(function (bi, r, i, arr) { return r.v > arr[bi].v ? i : bi; }, 0);
+    this.bars = ks.map(function (k, i) {
+      var h = (B - T) * self.res[i].v / mx, x = L + i * bw + bw * .18, g = el('svg:g', { style: 'cursor:pointer' }, svg);
+      var r = el('svg:rect', { x: x, y: B - h, width: bw * .64, height: h, rx: 10, fill: i === best ? 'var(--ink)' : '#CFCFCA' }, g);
+      txt(g, x + bw * .32, B - h - 16, self.res[i].v.toFixed(2), { 'text-anchor': 'middle', 'font-size': 28, 'font-weight': 650 });
+      txt(g, x + bw * .32, B + 46, 'k = ' + k, { 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 600 });
+      g.addEventListener('click', function () { self.show(i); });
+      return r;
+    });
+    this.show(best);
+  },
+  show: function (i) {
+    var svg = $('#silMini'); svg.innerHTML = '';
+    this.bars.forEach(function (b, k) { b.setAttribute('stroke', k === i ? 'var(--c0)' : 'none'); b.setAttribute('stroke-width', 5); });
+    var lay = layout2d(640, 470, 60, 40), a = this.res[i].a, cm = colorMap(a);
+    lay.P.forEach(function (p, j) { shape(svg, p[0], p[1] + 30, LABELS[j], 15, cm(a[j])); });
+    txt(svg, 28, 46, 'k = ' + (i + 2) + ' bo\'lganda', { 'font-size': 28, 'font-weight': 650 });
+  }
+};
+
+// 11. Nazariya sxemalari
+hooks.htheory = {
+  init: function () {
+    var h = $('#hDia'), pts = [[70, 250], [150, 270], [250, 120], [320, 150], [400, 260], [470, 230]], cols = ['var(--c0)', 'var(--c0)', 'var(--c3)', 'var(--c3)', 'var(--c2)', 'var(--c2)'];
+    [[0, 1], [2, 3], [4, 5]].forEach(function (pr) { var a = pts[pr[0]], b = pts[pr[1]], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; el('svg:ellipse', { cx: mx, cy: my, rx: Math.hypot(a[0] - b[0], a[1] - b[1]) / 2 + 30, ry: 38, fill: 'none', stroke: 'var(--faint)', 'stroke-width': 2, 'stroke-dasharray': '6 6', transform: 'rotate(' + (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI) + ' ' + mx + ' ' + my + ')' }, h); });
+    pts.forEach(function (p, i) { el('svg:circle', { cx: p[0], cy: p[1], r: 14, fill: cols[i] }, h); });
+    var X0 = 560, ys = [60, 100, 150, 190, 240, 280];
+    ys.forEach(function (y, i) { el('svg:circle', { cx: X0, cy: y, r: 9, fill: cols[i] }, h); });
+    function seg(d) { el('svg:path', { d: d, stroke: 'var(--ink)', 'stroke-width': 3, fill: 'none' }, h); }
+    seg('M569 60H610V100H569'); seg('M569 150H610V190H569'); seg('M569 240H610V280H569');
+    seg('M610 80H660V170H610'); seg('M660 125H715V260H610');
+    el('svg:line', { x1: 636, x2: 636, y1: 30, y2: 300, stroke: 'var(--c0)', 'stroke-width': 3, 'stroke-dasharray': '8 6' }, h);
+    txt(h, 646, 316, 'kesish', { 'font-size': 18, fill: 'var(--c0)' });
+    var s = $('#sDia');
+    ['AI vositasi', 'Esport', 'AI model', 'Albom'].forEach(function (t, i) { el('svg:rect', { x: 30, y: 40 + i * 66, width: 160, height: 48, rx: 10, fill: 'var(--soft)' }, s); txt(s, 110, 72 + i * 66, t, { 'text-anchor': 'middle', 'font-size': 20 }); });
+    el('svg:path', { d: 'M205 165 H300 M288 155 L302 165 L288 175', stroke: 'var(--ink)', 'stroke-width': 3, fill: 'none' }, s);
+    el('svg:rect', { x: 310, y: 115, width: 170, height: 100, rx: 14, fill: '#fff', stroke: 'var(--ink)', 'stroke-width': 3 }, s);
+    txt(s, 395, 158, 'max cos', { 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 600 }); txt(s, 395, 190, '≥ θ ?', { 'text-anchor': 'middle', 'font-size': 22 });
+    el('svg:path', { d: 'M480 140 L560 95', stroke: 'var(--ink)', 'stroke-width': 3 }, s); el('svg:path', { d: 'M480 190 L560 245', stroke: 'var(--ink)', 'stroke-width': 3 }, s);
+    txt(s, 512, 104, 'ha', { 'font-size': 18, fill: 'var(--muted)' }); txt(s, 500, 248, 'yo\'q', { 'font-size': 18, fill: 'var(--muted)' });
+    el('svg:rect', { x: 570, y: 62, width: 170, height: 60, rx: 12, fill: 'var(--c3)' }, s); txt(s, 655, 99, 'klasterga qo\'sh', { 'text-anchor': 'middle', 'font-size': 19, fill: '#fff', 'font-weight': 600 });
+    el('svg:rect', { x: 570, y: 218, width: 170, height: 60, rx: 12, fill: 'var(--c0)' }, s); txt(s, 655, 255, 'yangi klaster', { 'text-anchor': 'middle', 'font-size': 19, fill: '#fff', 'font-weight': 600 });
+  }
+};
+
+// 12. Dendrogramma
+hooks.dendro = {
+  init: function () {
+    var self = this, svg = $('#denSvg'), drag = false;
+    this.method = 'average'; this.build();
+    $$('#denLink button').forEach(function (b) { b.onclick = function () { $$('#denLink button').forEach(function (x) { x.classList.toggle('on', x === b); }); self.method = b.dataset.m; self.build(); }; });
+    $('#denRange').oninput = function () { self.h = this.value / 1000 * self.maxH * 1.05; self.draw(); };
+    function setFrom(e) { var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; var p = pt.matrixTransform(svg.getScreenCTM().inverse()); self.h = Math.max(0, Math.min(self.maxH * 1.05, (p.x - self.X0) / self.XW * self.maxH * 1.05)); $('#denRange').value = Math.round(self.h / (self.maxH * 1.05) * 1000); self.draw(); }
+    svg.addEventListener('pointerdown', function (e) { drag = true; svg.setPointerCapture(e.pointerId); setFrom(e); });
+    svg.addEventListener('pointermove', function (e) { if (drag) setFrom(e); });
+    svg.addEventListener('pointerup', function () { drag = false; });
+  },
+  build: function () {
+    var self = this, t = this.tree = IR.linkage(VS.X, this.method); this.order = [];
+    (function walk(n) { if (n.left) { walk(n.left); walk(n.right); } else self.order.push(n.members[0]); })(t.root);
+    this.maxH = t.root.height; var hs = t.merges.map(function (m) { return m.height; });
+    this.h = (hs[hs.length - 4] + hs[hs.length - 3]) / 2;
+    $('#denRange').value = Math.round(this.h / (this.maxH * 1.05) * 1000); this.draw();
+  },
+  draw: function () {
+    var svg = $('#denSvg'), self = this; svg.innerHTML = '';
+    var H = 800, X0 = 420, XW = 1180 - X0 - 30, rowH = (H - 20) / 16; this.X0 = X0; this.XW = XW;
+    var sx = function (h) { return X0 + h / (self.maxH * 1.05) * XW; }, ypos = {};
+    this.order.forEach(function (m, i) { ypos[m] = 10 + rowH * (i + .5); });
+    var assign = IR.cutTree(this.tree.root, this.h, 16), cm = colorMap(assign);
+    function ny(n) { return n.left ? (ny(n.left) + ny(n.right)) / 2 : ypos[n.members[0]]; }
+    function color(n) { return !n.left || n.height <= self.h ? cm(assign[n.members[0]]) : '#C9CBCF'; }
+    (function walk(n) {
+      if (!n.left) return; var x = sx(n.height), y1 = ny(n.left), y2 = ny(n.right);
+      [n.left, n.right].forEach(function (ch, k) { el('svg:path', { d: 'M' + (ch.left ? sx(ch.height) : X0) + ' ' + (k ? y2 : y1) + 'H' + x, stroke: color(ch), 'stroke-width': 4, fill: 'none' }, svg); });
+      el('svg:path', { d: 'M' + x + ' ' + y1 + 'V' + y2, stroke: color(n), 'stroke-width': 4, fill: 'none' }, svg);
+      walk(n.left); walk(n.right);
+    })(this.tree.root);
+    this.order.forEach(function (m) { var y = ypos[m], t = IR.MARS[m].t; shape(svg, X0 - 22, y, LABELS[m], 11, cm(assign[m])); txt(svg, X0 - 44, y + 8, t.length > 26 ? t.slice(0, 25) + '…' : t, { 'text-anchor': 'end', 'font-size': 23, fill: 'var(--ink-2)' }); });
+    var cx = sx(this.h);
+    el('svg:rect', { x: cx - 18, y: 0, width: 36, height: H, fill: 'transparent', style: 'cursor:ew-resize' }, svg);
+    el('svg:line', { x1: cx, x2: cx, y1: 0, y2: H, stroke: 'var(--c0)', 'stroke-width': 4, 'stroke-dasharray': '12 8', 'pointer-events': 'none' }, svg);
+    $('#denK').textContent = Math.max.apply(null, assign) + 1;
+    $('#denInfo').innerHTML = 'Kesish masofasi <b class="num">' + this.h.toFixed(2) + '</b><br>purity <b class="num">' + IR.purity(assign, LABELS).toFixed(2) + '</b>';
+  }
+};
+
+// 13. Ketma-ket klasterlash
+var SPC = ['var(--c3)', 'var(--c2)', 'var(--c1)', 'var(--c0)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)'];
+var TICON = ['cpu', 'gamepad-2', 'headphones'];
+hooks.singlepass = {
+  init: function () {
+    var self = this, S = IR.STREAM.map(function (d) { return d.s; }); this.n = QA ? 9 : 0;
+    this.V = { on: IR.tfidf(S, true), off: IR.tfidf(S, false) };
+    $('#spNext').onclick = function () { self.stop(); self.next(); };
+    $('#spAuto').onclick = function () { if (self.iv) self.stop(); else self.start(); };
+    $('#spReset').onclick = function () { self.stop(); self.n = 0; self.render(); };
+    $('#spTh').oninput = function () { $('#spThV').textContent = (+this.value).toFixed(2); self.render(); };
+    $('#spStem').onchange = function () { self.render(); };
+    this.render();
+  },
+  next: function () { if (this.n < IR.STREAM.length) { this.n++; this.render(true); } else this.stop(); },
+  start: function () { var self = this; this.iv = setInterval(function () { self.next(); }, 1100); $('#spAuto').innerHTML = icon('pause') + 'To\'xtat'; },
+  stop: function () { clearInterval(this.iv); this.iv = null; $('#spAuto').innerHTML = icon('skip-forward') + 'Avto'; },
+  leave: function () { this.stop(); },
+  render: function (anim) {
+    var th = +$('#spTh').value, V = $('#spStem').checked ? this.V.on : this.V.off, n = this.n, res = IR.singlePass(V.X, th, n);
+    $('#spQueue').innerHTML = IR.STREAM.slice(n, n + 8).map(function (d, i) { return '<div class="' + (i ? '' : 'next') + '">' + esc(d.s) + '</div>'; }).join('') || '<div>Oqim tugadi: 15 ta sarlavha</div>';
+    var cols = $('#spCols'); cols.innerHTML = '';
+    res.clusters.forEach(function (c, j) {
+      var col = el('div', { class: 'col' }, cols); col.style.setProperty('--dye', SPC[j % SPC.length]);
+      col.innerHTML = '<h4><span>Klaster ' + (j + 1) + '</span><small>' + esc(IR.topTerms(c.center, V.terms, 2).join(', ')) + '</small></h4>' +
+        c.members.map(function (m) { var y = IR.STREAM[m].y; return '<div class="h' + (m === n - 1 ? ' new' : '') + '" style="--hc:' + SPC[y] + '">' + icon(TICON[y]) + '<span>' + esc(IR.STREAM[m].s) + '</span></div>'; }).join('');
+      if (anim && !REDUCED && c.members.length === 1 && c.members[0] === n - 1) gsap.from(col, { scale: .92, opacity: 0, duration: .5, ease: 'back.out(1.7)' });
+      else if (anim && !REDUCED && c.members.indexOf(n - 1) >= 0) gsap.from(col.querySelector('.new'), { opacity: 0, x: -20, duration: .45, ease: 'power2.out' });
+    });
+    var msg = $('#spMsg');
+    if (!n) msg.innerHTML = '<span style="color:var(--muted)">“Keyingi”ni bosing. Mavzular:</span>' + IR.TOPICS.map(function (t, i) { return '<span class="meaning" style="font-size:24px"><span style="color:' + SPC[i] + '">' + icon(TICON[i]) + '</span>' + esc(t.name) + '</span>'; }).join('');
+    else {
+      var s = res.sims[n - 1], j = res.assign[n - 1], isNew = res.clusters[j].members[0] === n - 1, sv = Math.max(0, s);
+      msg.innerHTML = '<span class="simbar"><i style="width:' + Math.min(100, sv * 200) + '%"></i><u style="left:' + Math.min(100, th * 200) + '%"></u></span>' +
+        (s < 0 ? '<span>Birinchi hujjat — <b>Klaster 1</b> ochildi</span>' : '<span class="num">o\'xshashlik <b>' + sv.toFixed(2) + '</b> ' + (isNew ? '&lt; θ → <b style="color:var(--c0)">yangi klaster ' + (j + 1) + '</b>' : '≥ θ → <b>Klaster ' + (j + 1) + '</b> ga qo\'shildi') + '</span>') +
+        '<span class="small" style="margin-left:auto">' + res.clusters.length + ' klaster, ' + n + '/15</span>';
+    }
+  }
+};
+
+// 14. Scatter/Gather sikli
+hooks.sgtheory = {
+  init: function () {
+    var s = $('#sgLoop'), cx = 400, cy = 215, R = 150;
+    el('svg:circle', { cx: cx, cy: cy, r: R, fill: 'none', stroke: 'var(--line)', 'stroke-width': 4 }, s);
+    this.arc = el('svg:circle', { cx: cx, cy: cy, r: R, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 4, 'stroke-dasharray': '30 18' }, s);
+    [['Scatter', 'klasterlarga ajratish', -90], ['Tanlash', 'qiziq klaster', 30], ['Gather', 'birlashtirish', 150]].forEach(function (n) {
+      var a = n[2] * Math.PI / 180, x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
+      el('svg:rect', { x: x - 125, y: y - 46, width: 250, height: 92, rx: 18, fill: '#fff', stroke: 'var(--ink)', 'stroke-width': 3 }, s);
+      txt(s, x, y - 6, n[0], { 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 680 });
+      txt(s, x, y + 27, n[1], { 'text-anchor': 'middle', 'font-size': 20, fill: 'var(--muted)' });
+    });
+  },
+  enter: function () { if (REDUCED) return; if (this.tw) this.tw.kill(); this.tw = gsap.fromTo(this.arc, { attr: { 'stroke-dashoffset': 0 } }, { attr: { 'stroke-dashoffset': -192 }, duration: 3, ease: 'none', repeat: -1 }); },
+  leave: function () { if (this.tw) this.tw.kill(); }
+};
+
+// 15. Scatter/Gather
+hooks.scatter = {
+  init: function () {
+    var self = this; this.path = [];
+    $('#sgBack').onclick = function () { self.path = []; self.scatter(IR.MARS.map(function (_, i) { return i; })); };
+    $('#sgGather').onclick = function () {
+      var docs = []; self.sel.forEach(function (j) { docs = docs.concat(self.groups[j]); });
+      self.path.push(self.sel.map(function (j) { return self.names[j]; }).join(' + ')); self.scatter(docs.sort(function (a, b) { return a - b; }));
+    };
+    this.scatter(IR.MARS.map(function (_, i) { return i; }));
+  },
+  scatter: function (docs) {
+    var self = this, grid = $('#sgGrid'); grid.innerHTML = ''; this.sel = []; $('#sgGather').disabled = true;
+    var k = docs.length >= 12 ? 4 : docs.length >= 6 ? 3 : docs.length >= 3 ? 2 : 1;
+    var V = IR.tfidf(docs.map(function (i) { return TEXTS[i]; }), true), best = null;
+    if (k > 1) for (var s = 1; s <= 10; s++) { var r = IR.kmeans(V.X, k, s), v = IR.silhouette(V.X, r.assign); if (!best || v > best.v) best = { r: r, v: v }; }
+    var assign = k > 1 ? best.r.assign : docs.map(function () { return 0; }), groups = {};
+    assign.forEach(function (c, i) { (groups[c] = groups[c] || []).push(docs[i]); });
+    var keys = Object.keys(groups), cards = []; this.groups = keys.map(function (c) { return groups[c]; }); this.names = [];
+    this.groups.forEach(function (g, j) {
+      var center = k > 1 ? best.r.centers[keys[j]] : V.X.reduce(function (acc, x) { return acc.map(function (v, t) { return v + x[t]; }); }, new Array(V.terms.length).fill(0));
+      var terms = IR.topTerms(center, V.terms, 3, ['mars']); self.names.push(terms[0]);
+      var cnt = [0, 0, 0, 0]; g.forEach(function (d) { cnt[LABELS[d]]++; }); var maj = cnt.indexOf(Math.max.apply(null, cnt));
+      var b = el('button', { class: 'sgc' }, grid);
+      b.innerHTML = '<div class="terms"><span class="dot" style="background:' + MC[maj] + '"></span>' + esc(terms.join(', ')) + '</div><div class="n">' + g.length + ' ta hujjat</div>' +
+        g.slice(0, 4).map(function (d) { return '<div class="it"><b>' + esc(IR.MARS[d].t) + '</b><span>' + esc(IR.MARS[d].s) + '</span></div>'; }).join('') + (g.length > 4 ? '<div class="n">yana ' + (g.length - 4) + ' ta</div>' : '') + '<div class="tick">' + icon('check') + ' tanlandi</div>';
+      b.onclick = function () { var at = self.sel.indexOf(j); if (at >= 0) self.sel.splice(at, 1); else self.sel.push(j); b.classList.toggle('sel', at < 0); $('#sgGather').disabled = !self.sel.length; };
+      cards.push(b);
+    });
+    if (!REDUCED) gsap.from(cards, { y: 24, opacity: 0, duration: .5, ease: 'power3.out', stagger: .07 });
+    $('#sgCrumbs').innerHTML = ['<b>“Mars”, 16 natija</b>'].concat(this.path.map(function (p) { return '<b>' + esc(p) + '</b>'; })).join(' → ') + ' &nbsp; ' + this.groups.length + ' klaster';
+  }
+};
+
+// 16. Stemming
+hooks.stemming = {
+  init: function () {
+    var words = ['sayyorasidagi', 'kraterida', 'qo\'shiqchining', 'batonchasi', 'shokoladli', 'kurslari', 'darslarida', 'albomlari'];
+    $('#stmTable').innerHTML = words.map(function (w) { return '<tr><td>' + esc(w) + '</td><td class="ar">→</td><td>' + esc(IR.stem(w)) + '</td></tr>'; }).join('');
+    function rate(V) { var g = 0; for (var s = 1; s <= 200; s++) if (IR.samePartition(IR.kmeans(V.X, 4, s).assign, LABELS)) g++; return g / 2; }
+    this.m = { on: { v: VS.terms.length, r: rate(VS), c: IR.cosine(VS.X[5], VS.X[9]) }, off: { v: VN.terms.length, r: rate(VN), c: IR.cosine(VN.X[5], VN.X[9]) } };
+    var self = this; $('#stmToggle').onchange = function () { self.render(); }; this.render();
+  },
+  render: function () {
+    var on = $('#stmToggle').checked, V = on ? VS : VN, m = this.m, A = V.tokens[5], B = V.tokens[9];
+    $('#stmLbl').textContent = on ? 'Stemming yoqilgan' : 'Stemming o\'chirilgan';
+    $('#stmSample').innerHTML = [[5, A, B], [9, B, A]].map(function (r) { return '<div style="margin:6px 0 10px"><div class="small">' + esc(IR.MARS[r[0]].t) + '</div>' + r[1].map(function (t) { return '<span class="tok' + (r[2].indexOf(t) >= 0 && t !== 'mars' ? ' sh' : '') + '">' + esc(t) + '</span>'; }).join('') + '</div>'; }).join('');
+    function c(v) { return 'v num' + (v === on ? '' : ' off'); }
+    $('#stmMetrics').innerHTML = '<span></span><span class="h">Stemming bilan</span><span class="h">Stemmingsiz</span>' +
+      '<span>Lug\'at hajmi</span><span class="' + c(true) + '">' + m.on.v + '</span><span class="' + c(false) + '">' + m.off.v + '</span>' +
+      '<span>Ikki Bruno Mars natijasi, cos</span><span class="' + c(true) + '">' + m.on.c.toFixed(2) + '</span><span class="' + c(false) + '">' + m.off.c.toFixed(2) + '</span>' +
+      '<span>K-means to\'g\'ri (200 boshlanish)</span><span class="' + c(true) + '">' + m.on.r.toFixed(0) + '%</span><span class="' + c(false) + '">' + m.off.r.toFixed(0) + '%</span>';
+  }
+};
+
+// 17. Kod (haqiqiy natija replay)
+var CODE_SHORT = [
+  ['c', '# to\'liq fayl: assets/klasterlash.py'],
+  ['', '<k>import</k> re, pandas <k>as</k> pd'],
+  ['', '<k>from</k> sklearn.feature_extraction.text <k>import</k> TfidfVectorizer'],
+  ['', '<k>from</k> sklearn.cluster <k>import</k> KMeans'],
+  ['', ''],
+  ['', 'df = pd.<f>read_csv</f>(<s>"assets/mars.csv"</s>)            <c># 16 ta natija</c>'],
+  ['', 'STOP = <f>set</f>(<f>open</f>(<s>"assets/stop_uz.txt"</s>).read().split())'],
+  ['', '<k>def</k> <f>stem</f>(w): …       <c># qo\'shimchani kesish, o\'zak ≥ 4</c>'],
+  ['', '<k>def</k> <f>tokens</f>(text): …  <c># so\'zlar → stop → stem</c>'],
+  ['', ''],
+  ['', 'vec = <f>TfidfVectorizer</f>(tokenizer=tokens, lowercase=<k>False</k>,'],
+  ['', '                      token_pattern=<k>None</k>)'],
+  ['', 'X = vec.<f>fit_transform</f>(df[<s>"snippet"</s>])'],
+  ['', '<f>print</f>(<s>"X:"</s>, X.shape, <s>"-> 16 hujjat x o\'zaklar"</s>)'],
+  ['', 'km = <f>KMeans</f>(n_clusters=4, n_init=10, random_state=42).<f>fit</f>(X)'],
+  ['', 'df[<s>"klaster"</s>] = km.labels_'],
+  ['', 'terms = vec.<f>get_feature_names_out</f>()'],
+  ['', '<k>for</k> c, center <k>in</k> <f>enumerate</f>(km.cluster_centers_):'],
+  ['', '    top = terms[center.argsort()[::-1][:3]]'],
+  ['', '    <f>print</f>(f<s>"klaster {c}:"</s>, <s>", "</s>.join(top))'],
+  ['', '<f>print</f>(pd.<f>crosstab</f>(df[<s>"klaster"</s>], df[<s>"manosi"</s>]))']
+];
+var CODE_FULL = "import re\nimport pandas as pd\nfrom sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.cluster import KMeans\n\ndf = pd.read_csv(\"assets/mars.csv\")                 # 16 ta \"Mars\" natijasi\nSTOP = set(open(\"assets/stop_uz.txt\", encoding=\"utf-8\").read().split())\nSUF = sorted(\"lardagi laridan larning larida larini lariga lardan sining larda \"\n             \"larni larga sidan ining dagi lari sida sini siga idan ning lar \"\n             \"ida ini iga dan da ni ga si li i\".split(), key=len, reverse=True)\n\ndef stem(w):                        # qo'shimchalarni kesamiz, o'zak >= 4 harf\n    cut = True\n    while cut:\n        cut = False\n        for s in SUF:\n            if w.endswith(s) and len(w) - len(s) >= 4:\n                w, cut = w[:-len(s)], True\n                break\n    return w\n\ndef tokens(text):\n    words = (w.strip(\"'\") for w in re.findall(r\"[a-z0-9']+\", text.lower()))\n    return [stem(w) for w in words if len(w) > 1 and w not in STOP and not w.isdigit()]\n\nvec = TfidfVectorizer(tokenizer=tokens, lowercase=False, token_pattern=None)\nX = vec.fit_transform(df[\"snippet\"])\nprint(\"X:\", X.shape, \"-> 16 hujjat x o'zaklar\")\n\nkm = KMeans(n_clusters=4, n_init=10, random_state=42).fit(X)\ndf[\"klaster\"] = km.labels_\n\nterms = vec.get_feature_names_out()\nfor c, center in enumerate(km.cluster_centers_):\n    print(f\"klaster {c}:\", \", \".join(terms[center.argsort()[::-1][:3]]))\n\nprint(pd.crosstab(df[\"klaster\"], df[\"manosi\"]))";
+var CODE_OUT = "X: (16, 75) -> 16 hujjat x o'zaklar\nklaster 0: albom, bruno, qo'shiqch\nklaster 1: it, kurs, school\nklaster 2: batoncha, shokolad, karamel\nklaster 3: tuproq, sayyora, rover\nmanosi   Bruno Mars  Mars IT School  Sayyora  Shokolad\nklaster                                               \n0                 4               0        0         0\n1                 0               4        0         0\n2                 0               0        0         4\n3                 0               0        4         0";
+hooks.code = {
+  init: function () {
+    var self = this; this.full = false;
+    function short() { return CODE_SHORT.map(function (l) { var h = esc(l[1]).replace(/&lt;(\/?)(k|s|c|f)&gt;/g, function (_, sl, t) { return sl ? '</span>' : '<span class="' + t + '">'; }); return l[0] === 'c' ? '<span class="c">' + h + '</span>' : h; }).join('\n'); }
+    function full() { return esc(CODE_FULL).replace(/(#[^\n]*)/g, '<span class="c">$1</span>').replace(/\b(import|from|as|def|return|for|in|if|and|not|while|True|False|None|break)\b/g, '<span class="k">$1</span>'); }
+    $('#codePre').innerHTML = short();
+    $('#codeFull').onclick = function () { self.full = !self.full; $('#codePre').innerHTML = self.full ? full() : short(); this.textContent = self.full ? 'Qisqa' : 'To\'liq kod'; };
+    $('#codeOut').innerHTML = '<span class="c">$ python assets/klasterlash.py</span>\n' + CODE_OUT.split('\n').map(function (l) { return '<span class="ln">' + esc(l) + '</span>'; }).join('\n');
+    $('#codeRun').onclick = function () { self.run(); };
+    if (QA) $$('#codeOut .ln').forEach(function (l) { l.classList.add('on'); });
+  },
+  run: function () { var ls = $$('#codeOut .ln'); ls.forEach(function (l) { l.classList.remove('on'); }); (this.calls || []).forEach(function (c) { c.kill(); }); this.calls = ls.map(function (l, i) { return gsap.delayedCall(.4 + i * (i < 5 ? .35 : .13), function () { l.classList.add('on'); }); }); }
+};
+
+// 18. Purity
+hooks.purity = {
+  init: function () {
+    var self = this, good = null, bad = null, worst = 2;
+    for (var s = 1; s <= 50 && !good; s++) { var r = IR.kmeans(VS.X, 4, s); if (IR.samePartition(r.assign, LABELS)) good = r.assign; }
+    for (s = 1; s <= 300; s++) { var rb = IR.kmeans(VN.X, 4, s), p = IR.purity(rb.assign, LABELS); if (p < worst) { worst = p; bad = rb.assign; } if (p <= .75) break; }
+    this.sets = [{ n: 'Stemming bilan', a: good, e: 'Har klasterda faqat bitta ma\'no.' }, { n: 'Yomon misol', a: bad, e: 'Ma\'nolar aralashib ketgan.' }];
+    var box = $('#purBtns');
+    this.btns = this.sets.map(function (st, i) { var b = el('button', {}, box, esc(st.n)); b.onclick = function () { self.show(i); }; return b; });
+    this.show(0);
+  },
+  show: function (k) {
+    var st = this.sets[k], a = st.a, ids = []; this.btns.forEach(function (b, i) { b.classList.toggle('on', i === k); });
+    a.forEach(function (c) { if (ids.indexOf(c) < 0) ids.push(c); }); ids.sort();
+    var html = '<tr><th></th>' + IR.MEANINGS.map(function (m, j) { return '<th><span style="color:' + MC[j] + '">' + icon(MICON[j]) + '</span><br>' + esc(m.name) + '</th>'; }).join('') + '</tr>';
+    ids.forEach(function (c, r) {
+      var row = [0, 0, 0, 0]; a.forEach(function (x, i) { if (x === c) row[LABELS[i]]++; });
+      var mx = Math.max.apply(null, row), done = false;
+      html += '<tr><th>klaster ' + r + '</th>' + row.map(function (v) { var m = v === mx && !done && v > 0; if (m) done = true; return '<td class="' + (m ? 'max' : '') + '">' + v + '</td>'; }).join('') + '</tr>';
+    });
+    $('#purTab').innerHTML = html;
+    var p = IR.purity(a, LABELS); $('#purScore').textContent = p.toFixed(2);
+    $('#purExpl').textContent = st.e + ' ' + Math.round(p * 16) + ' / 16 hujjat o\'z klasterining asosiy ma\'nosida.';
+  }
+};
+
+// 19. RAPTOR sxemasi
+hooks.newtech = {
+  init: function () {
+    var s = $('#raptor'), cols = ['var(--c3)', 'var(--c2)', 'var(--c1)'];
+    for (var i = 0; i < 9; i++) el('svg:rect', { x: 20 + i * 82, y: 190, width: 62, height: 34, rx: 8, fill: '#fff', stroke: cols[Math.floor(i / 3)], 'stroke-width': 3 }, s);
+    for (var c = 0; c < 3; c++) {
+      var x = 20 + c * 246 + 113;
+      for (var j = 0; j < 3; j++) el('svg:line', { x1: 51 + (c * 3 + j) * 82, y1: 190, x2: x, y2: 132, stroke: cols[c], 'stroke-width': 2.5 }, s);
+      el('svg:line', { x1: x, y1: 96, x2: 380, y2: 54, stroke: 'var(--faint)', 'stroke-width': 2.5 }, s);
+      el('svg:rect', { x: x - 60, y: 96, width: 120, height: 36, rx: 9, fill: cols[c] }, s);
+      txt(s, x, 121, 'xulosa', { 'text-anchor': 'middle', 'font-size': 20, fill: '#fff', 'font-weight': 650 });
+    }
+    el('svg:rect', { x: 290, y: 14, width: 180, height: 40, rx: 10, fill: 'var(--ink)' }, s);
+    txt(s, 380, 41, 'umumiy xulosa', { 'text-anchor': 'middle', 'font-size': 20, fill: '#fff', 'font-weight': 650 });
+  }
+};
+
+// 20. QR
+hooks.quiz = {
+  init: function () {
+    var img = $('#qrImg');
+    function fail() { $('#qrBox').innerHTML = '<div class="fb"><b>qr.png topilmadi</b>Google Forms havolasidan QR yarating va uni qr.png nomi bilan index.html yoniga qo\'ying.</div>'; }
+    img.addEventListener('error', fail); if (img.complete && !img.naturalWidth) fail();
+  }
+};
+
+// 22. Rahmat: rangli nuqtalar so'zga yig'iladi (klasterlash kabi)
+var TCOL = ['#D55E00', '#CC79A7', '#E69F00', '#0072B2'];
+hooks.thanks = {
+  init: function () {
+    var self = this, r = IR.rng(9); this.ctx = $('#thanksCanvas').getContext('2d');
+    this.words = ['Rahmat!', 'Savollar?']; this.p = [];
+    for (var i = 0; i < 2600; i++) this.p.push({ x: r() * 1920, y: r() * 1080, sx: 0, sy: 0, tx: 0, ty: 0, c: TCOL[i % 4], s: 2.8 + r() * 2.2, d: r() * .4, on: false });
+    $('#thanksAgain').onclick = function () { self.play(); };
+  },
+  sample: function (word) {
+    var c = document.createElement('canvas'); c.width = 1920; c.height = 1080; var x = c.getContext('2d');
+    x.fillStyle = '#000'; x.font = '760 320px Onest, "Segoe UI", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(word, 960, 440);
+    var d = x.getImageData(0, 0, 1920, 1080).data, out = [], step = 10;
+    for (var yy = 0; yy < 1080; yy += step) for (var xx = 0; xx < 1920; xx += step) if (d[(yy * 1920 + xx) * 4 + 3] > 128) out.push([xx, yy]);
+    return out;
+  },
+  target: function (w) {
+    // so'z chapdan o'ngga 4 bo'lakka bo'linadi: har bo'lak bitta rang (klaster)
+    var T = this.targets[w].slice().sort(function (a, b) { return a[0] - b[0]; }), q = Math.ceil(T.length / 4), idx = [0, 0, 0, 0], r = IR.rng(w + 3);
+    this.p.forEach(function (p) {
+      var k = TCOL.indexOf(p.c), b = T.slice(k * q, (k + 1) * q);
+      if (idx[k] < b.length) { var t = b[idx[k]++]; p.tx = t[0]; p.ty = t[1]; p.on = true; }
+      else { var a = r() * Math.PI * 2, rr = 700 + r() * 320; p.tx = 960 + Math.cos(a) * rr; p.ty = 440 + Math.sin(a) * rr * .6; p.on = false; }
+      p.sx = p.x; p.sy = p.y;
+    });
+  },
+  play: function () {
+    var self = this, r = IR.rng(Date.now() & 0xffff); this.stop();
+    this.p.forEach(function (p) { p.x = r() * 1920; p.y = r() * 1080; });
+    this.w = 0; this.target(0); this.t0 = performance.now();
+    if (REDUCED) { this.p.forEach(function (p) { p.x = p.tx; p.y = p.ty; }); this.draw(); return; }
+    var loop = function (now) {
+      var t = (now - self.t0) / 1000, dur = 2.4;
+      self.p.forEach(function (p) { var k = Math.min(1, Math.max(0, (t - p.d) / dur)), e = 1 - Math.pow(1 - k, 4); p.x = p.sx + (p.tx - p.sx) * e; p.y = p.sy + (p.ty - p.sy) * e; });
+      self.draw();
+      if (t > dur + 4.5) { self.w = 1 - self.w; self.target(self.w); self.t0 = now; }
+      self.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
+  },
+  draw: function () {
+    var x = this.ctx; x.clearRect(0, 0, 1920, 1080);
+    this.p.forEach(function (p) { x.globalAlpha = p.on ? 1 : .2; x.fillStyle = p.c; x.beginPath(); x.arc(p.x, p.y, p.s, 0, 6.283); x.fill(); });
+    x.globalAlpha = 1;
+  },
+  stop: function () { if (this.raf) cancelAnimationFrame(this.raf); this.raf = null; },
+  enter: function () {
+    var self = this, ready = document.fonts && document.fonts.load ? document.fonts.load('760 320px Onest') : Promise.resolve();
+    ready.catch(function () {}).then(function () { self.targets = self.words.map(function (w) { return self.sample(w); }); self.play(); });
+  },
+  leave: function () { this.stop(); }
+};
+
+// ---------- Reveal ----------
+['ktheory'].forEach(function (id) { hooks[id].init(); hooks[id]._i = true; });
+Reveal.initialize({
+  width: 1920, height: 1080, margin: 0, minScale: .1, maxScale: 2, center: false, embedded: true,
+  hash: true, controls: true, controlsTutorial: false, progress: true, slideNumber: 'c/t', help: false,
+  transition: QA ? 'none' : 'slide', backgroundTransition: 'fade', fragments: !QA,
+  keyboard: { 83: function () { openSettings(!settingsOpen()); }, 84: toggleClock, 69: function () { var n = Reveal.getPlugin('notes'); if (n) n.open(); }, 27: function () { openSettings(false); } },
+  plugins: [RevealNotes]
+});
+var prev = null;
+function onSlide(s) {
+  if (prev && prev !== s) { var hp = hooks[prev.dataset.id]; if (hp && hp.leave) hp.leave(); }
+  prev = s;
+  var h = hooks[s.dataset.id];
+  if (h) { if (!h._i && h.init) { h.init(); h._i = true; } if (h.enter) h.enter(); }
+  var n = s.querySelector('aside.notes'); $('#notesText').textContent = n ? n.textContent : '';
+  $('#plan').textContent = 'Reja: ' + s.dataset.plan + ' daq.';
+  tick();
+}
+Reveal.on('ready', function (e) { apply(); onSlide(e.currentSlide); if (params.get('panel') === '1') openSettings(true); });
+Reveal.on('slidechanged', function (e) { onSlide(e.currentSlide); });
+Reveal.on('fragmentshown', function () { if (Reveal.getCurrentSlide().dataset.id === 'timeline') hooks.timeline.sync(); });
+Reveal.on('fragmenthidden', function () { if (Reveal.getCurrentSlide().dataset.id === 'timeline') hooks.timeline.sync(); });
+})();
+</script>
+</body>
+</html>

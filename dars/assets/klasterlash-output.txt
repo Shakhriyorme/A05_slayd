@@ -1,0 +1,11 @@
+X: (16, 75) -> 16 hujjat x o'zaklar
+klaster 0: albom, bruno, qo'shiqch
+klaster 1: it, kurs, school
+klaster 2: batoncha, shokolad, karamel
+klaster 3: tuproq, sayyora, rover
+manosi   Bruno Mars  Mars IT School  Sayyora  Shokolad
+klaster                                               
+0                 4               0        0         0
+1                 0               4        0         0
+2                 0               0        0         4
+3                 0               0        4         0

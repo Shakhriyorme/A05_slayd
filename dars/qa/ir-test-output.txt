@@ -1,0 +1,34 @@
+OK   stem(kurslari) = kurs (kutilgan kurs)
+OK   stem(kursiga) = kurs (kutilgan kurs)
+OK   stem(matnlarni) = matn (kutilgan matn)
+OK   stem(matnni) = matn (kutilgan matn)
+OK   stem(modellari) = model (kutilgan model)
+OK   stem(modelini) = model (kutilgan model)
+OK   stem(treklari) = trek (kutilgan trek)
+OK   stem(albomlarini) = albom (kutilgan albom)
+OK   stem(turnirida) = turnir (kutilgan turnir)
+OK   stem(jamoalari) = jamoa (kutilgan jamoa)
+OK   stem(jamoasi) = jamoa (kutilgan jamoa)
+OK   stem(sayyorasidagi) = sayyora (kutilgan sayyora)
+OK   stem(sayyorasida) = sayyora (kutilgan sayyora)
+OK   stem(yordamchilari) = yordamch (kutilgan yordamch)
+OK   stem(yordamchi) = yordamch (kutilgan yordamch)
+OK   stem(shokoladli) = shokolad (kutilgan shokolad)
+OK   qisqa o'zak kesilmaydi: dars
+k-means 20 paket × 10 restart, ON : 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+k-means 20 paket × 10 restart, OFF: 9 9 10 7 5 9 9 7 9 8 9 9 10 6 9 7 8 6 7 9
+ON >= 9/10 bo'lgan paketlar: 20/20; OFF yomonroq bo'lgan paketlar: 18/20
+k-means seed 1..1000: stemming ON 976/1000, OFF 823/1000
+OK   stemming ON: restartlarning >= 90% to'g'ri (seed 1..1000)
+OK   stemming ON: 20 paketdan kamida 18 tasida >= 9/10
+OK   stemming OFF ba'zan yomonroq
+single-pass ON : 0.05:k3/p1✓  0.1:k3/p1✓  0.15:k3/p1✓  0.2:k3/p1✓  0.25:k5/p1  0.3:k10/p1  0.35:k11/p1  0.4:k12/p1  0.45:k14/p1  0.5:k14/p1
+single-pass OFF: 0.05:k5/p1  0.1:k8/p1  0.15:k11/p1  0.2:k12/p1  0.25:k13/p1  0.3:k14/p1  0.35:k15/p1  0.4:k15/p1  0.45:k15/p1  0.5:k15/p1
+OK   stemming ON: biror chegarada aynan 3 mavzu hosil bo'ladi
+aniq 3 mavzu beradigan chegaralar (ON): 0.05, 0.1, 0.15, 0.2
+aniq 3 mavzu beradigan chegaralar (OFF): yo'q
+silhouette (eng yaxshi 10 restartdan): k=2: 0.178, k=3: 0.274, k=4: 0.372, k=5: 0.343, k=6: 0.289
+OK   silhouette eng yuqori k = 4
+dendrogram: 4 klasterga kesish, purity = 1.00
+
+Hammasi o'tdi
